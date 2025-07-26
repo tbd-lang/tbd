@@ -1,0 +1,16 @@
+# enums
+enum Status = {
+    success of int,
+    failure
+};
+
+let _ = Status.success 23;
+let _ = Status.failure;
+
+# records
+record Person = {
+    name : string,
+    age : int
+}
+
+let _ = Person { name = "John", age = 30 };

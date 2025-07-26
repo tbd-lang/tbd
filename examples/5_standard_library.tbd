@@ -1,0 +1,25 @@
+import tbd.io;
+import tbd.int;
+import tbd.float;
+import tbd.string;
+import tbd.result;
+import tbd.option;
+import tbd.char;
+import tbd.list;
+import tbd.tuple;
+import tbd.array;
+import tbd.net.http;
+import tbd.net.socket;
+import tbd.json;
+import tbd.yaml;
+import tbd.toml;
+
+let () = io.print_line "Hello world!";
+
+
+import tbd.io.{read_line};
+
+let () = {
+    let input = read_line ();
+    io.print_line input
+};

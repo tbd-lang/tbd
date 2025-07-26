@@ -1,0 +1,15 @@
+module my_list = {
+    let empty = [];
+    
+    fun reverse l = {
+        fun rec reverse' l' acc = match l' {
+            [] -> acc,
+            hd::tl -> reverse' tl (hd::acc)
+        };
+        reverse' l []
+    };
+};
+
+
+let a = [1, 2, 3, 4];
+let b = my_list.reverse a;
