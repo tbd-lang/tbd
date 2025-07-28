@@ -7,6 +7,15 @@ type token =
   | String of string
   | Identifier of string
   | Assignment
+  | AddInteger
+  | SubInteger
+  | MulInteger
+  | DivInteger
+  | AddFloat
+  | SubFloat
+  | MulFloat
+  | DivFloat
+  | Concat
   | Let
   | Fun
   | Recursive
@@ -29,6 +38,7 @@ type token =
   | Match
   | Arrow
   | Wildcard
+;;
 
 
 let token_to_string token =
@@ -41,6 +51,15 @@ let token_to_string token =
   | String s -> Printf.sprintf "String(%s)" s
   | Identifier s -> Printf.sprintf "Identifier(%s)" s
   | Assignment -> "Assignment"
+  | AddInteger -> "AddInt"
+  | SubInteger -> "SubInt"
+  | MulInteger -> "MulInt"
+  | DivInteger -> "DivInt"
+  | AddFloat -> "AddFloat"
+  | SubFloat -> "SubFloat"
+  | MulFloat -> "MulFloat"
+  | DivFloat -> "DivFloat"
+  | Concat -> "Concat"
   | Let -> "Let"
   | Fun -> "Fun"
   | Recursive -> "Recursive"
@@ -63,6 +82,7 @@ let token_to_string token =
   | Match -> "Match"
   | Arrow -> "Arrow"
   | Wildcard -> "Wildcard"
+;;
 
 
 let rec print_tokens tokens =
@@ -71,12 +91,15 @@ let rec print_tokens tokens =
   | hd :: tl ->
     print_endline (token_to_string hd);
     print_tokens tl
-
+;;
   
+
 let chars_to_string chars =
   List.rev chars |> List.to_seq |> String.of_seq
+;;
 
-let collect_identifier chars tokens =
+
+let rec collect_identifier chars acc =
   let string_to_token s =
     match s with
     | s when String.ends_with ~suffix:"." s -> failwith "Incomplete module access"
@@ -95,19 +118,15 @@ let collect_identifier chars tokens =
     | _ -> Identifier(s)
   in
 
-  let rec aux chars acc =
-    match chars with
+  match chars with
     | [] -> [], string_to_token (chars_to_string acc)
     | hd :: tl -> match hd with
-      | 'a'..'z' | 'A'..'Z' | '_' | '.' | '0'..'9' -> aux tl (hd :: acc)
+      | 'a'..'z' | 'A'..'Z' | '_' | '.' | '0'..'9' -> collect_identifier tl (hd :: acc)
       | _ -> chars, string_to_token (chars_to_string acc)
-  in
-
-  let chars, token = aux chars [] in
-  chars, token :: tokens
+;;
 
 
-let rec collect_number chars tokens =
+let rec collect_number chars acc =
   let chars_to_float chars =
     Float.of_string (chars_to_string chars)
   in
@@ -124,51 +143,96 @@ let rec collect_number chars tokens =
       | _ -> chars, Float(chars_to_float acc)
   in
 
-  let rec collect_integer chars acc =
-    match chars with
+  match chars with
     | [] -> [], Integer(chars_to_integer acc)
     | hd :: tl -> match hd with
-      | '0'..'9' | '-' -> collect_integer tl (hd :: acc)
+      | '0'..'9' -> collect_number tl (hd :: acc)
       | '.' -> collect_float tl (hd :: acc)
       | _ -> chars, Integer(chars_to_integer acc)
-  in
+;;
 
-  let chars, token = collect_integer chars [] in
-  chars, token :: tokens
-  
 
-let collect_unit chars tokens =
+let collect_unit chars =
   match chars with
-  | [] -> [], tokens
-  | '(' :: ')' :: tl -> tl, Unit :: tokens
-  | _ :: tl -> tl, LeftParenthesis :: tokens
+  | [] -> failwith "Parenthesis never closed"
+  | ')' :: tl -> tl, Unit
+  | _ :: tl -> tl, LeftParenthesis
+;;
 
 
-let collect_string chars tokens =
-  let rec aux chars close acc =
-    match chars with
-    | [] -> failwith "String never closed"
-    | hd :: tl ->
-      match hd, close with
-      | '"', false -> aux tl true (hd :: acc)
-      | '"', true -> tl, String(chars_to_string (hd :: acc))
-      | _ -> aux tl close (hd :: acc)
-  in
-
-  let chars, token = aux chars false [] in
-  chars, token :: tokens
-
-
-let peek chars =
+let rec collect_string chars acc =
   match chars with
-  | [] ->  None
-  | hd :: tl -> Some(hd, tl)
+  | [] -> failwith "String never closed"
+  | hd :: tl ->
+    match hd with
+    | '"' -> tl, String(chars_to_string (hd :: acc))
+    | _ -> collect_string tl (hd :: acc)
+;;
 
 
-let peek2 chars =
+let collect_char chars = 
   match chars with
-  | [] | [_] -> None
-  | e1 :: e2 :: tl -> Some(e1, e2, tl)
+  | [] -> failwith "Char never closed"
+  | c :: '\'' :: tl -> tl, Char(c)
+  | '\\' :: c :: '\'' :: tl -> 
+    (match c with
+    | 'n' -> tl, Char('\n')
+    | 't' -> tl, Char('\t')
+    | 'r' -> tl, Char('\r')
+    | '\\' -> tl, Char('\\')
+    | '\'' -> tl, Char('\'')
+    | _ -> failwith "Unknown escape character")
+  | _ -> failwith "Invalid char"
+;;
+
+
+let collect_cons chars = 
+  match chars with
+  | [] -> [], Colon
+  | ':' :: tl -> tl, Cons
+  | _ -> chars, Colon
+;;
+
+
+let collect_add chars =
+  match chars with
+  | [] -> failwith "Add never used"
+  | '.' :: tl -> tl, AddFloat
+  | _ -> chars, AddInteger
+;;
+
+
+let collect_sub chars =
+  match chars with
+  | [] -> failwith "Sub never used"
+  | '.' :: tl -> tl, SubFloat
+  | '>' :: tl -> tl, Arrow
+  | _ -> chars, SubInteger
+;;
+
+
+let collect_mul chars =
+  match chars with
+  | [] -> failwith "Mul never used"
+  | '.' :: tl -> tl, MulFloat
+  | _ -> chars, MulInteger
+;;
+
+
+let collect_div chars =
+  match chars with
+  | [] -> failwith "Div never used"
+  | '.' :: tl -> tl, DivFloat
+  | _ -> chars, DivInteger
+;;
+
+
+let collect_range chars = 
+  match chars with
+  | [] -> failwith "Missing character after ."
+  | '.' :: tl -> tl, Range
+  | _ -> failwith "Unsupported character after ."
+;;
 
 
 let tokenize chars =
@@ -178,45 +242,43 @@ let tokenize chars =
     | hd :: tl ->
       (match hd with
       | ' ' | '\n' | '\t' | '\r' -> aux tl tokens
-      | '-' ->
-        (match peek tl with
-        | None -> failwith "Missing character after '-'"
-        | Some ('>', tl) -> aux tl (Arrow :: tokens)
-        | Some('0'..'9', _) ->
-          (let chars, tokens = collect_number chars tokens in
-          aux chars tokens)
-        | _ -> failwith "Unsupported character found after '-'"
-        )
       | '0'..'9' ->
-        (let chars, tokens = collect_number chars tokens in
-        aux chars tokens)
+        (let chars, token = collect_number tl [hd] in
+        aux chars (token :: tokens))
+      | '+' ->
+        (let chars, token = collect_add tl in
+        aux chars (token :: tokens))
+      | '-' ->
+        (let chars, token = collect_sub tl in
+        aux chars (token :: tokens))
+      | '*' ->
+        (let chars, token = collect_mul tl in
+        aux chars (token :: tokens))
+      | '/' ->
+        (let chars, token = collect_div tl in
+        aux chars (token :: tokens))
+      | '^' -> aux tl (Concat :: tokens)
       | '"' ->
-        (let chars, tokens = collect_string chars tokens in
-        aux chars tokens)
+        (let chars, token = collect_string tl [hd] in
+        aux chars (token :: tokens))
       | '\'' -> 
-        (match peek2 tl with
-        | None -> failwith "Missing chars after '"
-        | Some(c, '\'', tl) -> aux tl (Char(c) :: tokens)
-        | _ -> failwith "' never closed")
+        (let chars, token = collect_char tl in
+        aux chars (token :: tokens))
       | 'a'..'z' | 'A'..'Z' | '_' ->
-        (let chars, tokens = collect_identifier chars tokens in
-        aux chars tokens)
+        (let chars, token = collect_identifier tl [hd] in
+        aux chars (token::tokens))
       | '=' -> aux tl (Assignment :: tokens)
       | ',' -> aux tl (Comma :: tokens)
       | ';' -> aux tl (Semicolon :: tokens)
       | ':' -> 
-        (match peek tl with
-        | None -> failwith "Missing character after ':'"
-        | Some(':', tl) -> aux tl (Cons :: tokens)
-        | Some(_, _) -> aux tl (Colon :: tokens))
+        (let chars, token = collect_cons tl in
+        aux chars (token :: tokens))
       | '.' -> 
-        (match peek tl with
-        | None -> failwith "Missing character after '.'"
-        | Some('.', tl) -> aux tl (Range :: tokens)
-        | _ -> failwith "Missing character after '.'")
+        (let chars, token = collect_range tl in
+        aux chars (token :: tokens))
       | '(' ->
-        (let chars, tokens = collect_unit chars tokens in
-        aux chars tokens)
+        (let chars, token = collect_unit tl in
+        aux chars (token :: tokens))
       | ')' -> aux tl (RightParenthesis :: tokens)
       | '[' -> aux tl (LeftBracket :: tokens)
       | ']' -> aux tl (RightBracket :: tokens)
@@ -226,6 +288,7 @@ let tokenize chars =
     in
 
     List.rev (aux chars [])
+;;
 
   
 let test_cases =
@@ -238,9 +301,22 @@ let test_cases =
     "let float = { 12.34 };";
     "let float = { -12.34 };";
 
+    "let add a b = { a + b };";
+    "let sub a b = { a - b };";
+    "let mul a b = { a * b };";
+    "let div a b = { a / b };";
+
+    "let add a b = { a +. b };";
+    "let sub a b = { a -. b };";
+    "let mul a b = { a *. b };";
+    "let div a b = { a /. b };";
+
+    "let concat s1 s2 = { \"Hello \" ^ \"world!\" };";
+
     "let string = { \"This is a string\" };";
 
     "let char = { 'c' };";
+    "let char = { '\\n' };";
 
     "let bool = { true };";
     "let bool = { false };";
@@ -264,6 +340,7 @@ let test_cases =
 
     "fun char_to_int c = { match c { '0'..'9' -> Option.some (Int.sub (Char.to_ascii c) (Char.to_ascii '0')), _ -> Option.none }}"
   ]
+;;
 
 
 let () =
@@ -276,3 +353,4 @@ let () =
   in
 
   List.iter (fun t -> run_test t) test_cases
+;;
