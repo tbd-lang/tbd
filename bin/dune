@@ -1,0 +1,9 @@
+(executable
+ (name lexer)
+ (modules lexer)
+ (libraries tbd))
+
+(executable
+ (name parser)
+ (modules parser)
+ (libraries tbd))
