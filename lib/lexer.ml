@@ -6,6 +6,7 @@ type token =
   | Char of char
   | String of string
   | Identifier of string
+  | Comment of string
   | Assignment
   | AddInteger
   | SubInteger
@@ -17,12 +18,15 @@ type token =
   | DivFloat
   | Concat
   | Let
-  | Fun
+  | In
+  | Const
+  | Function
   | Recursive
   | Enum
   | Of
   | Struct
-  | Import
+  | TypeVar of string
+  | Open
   | Module
   | Comma
   | Semicolon
@@ -44,12 +48,13 @@ type token =
 let token_to_string token =
   match token with
   | Unit -> "Unit"
-  | Integer x -> Printf.sprintf "Integer(%d)" x
-  | Float x -> Printf.sprintf "Float(%f)" x
+  | Integer n -> Printf.sprintf "Integer(%d)" n
+  | Float f -> Printf.sprintf "Float(%f)" f
   | Boolean b -> Printf.sprintf "Boolean(%b)" b
   | Char c -> Printf.sprintf "Char(%c)" c
   | String s -> Printf.sprintf "String(%s)" s
   | Identifier s -> Printf.sprintf "Identifier(%s)" s
+  | Comment s -> Printf.sprintf "Comment(%s)" s
   | Assignment -> "Assignment"
   | AddInteger -> "AddInt"
   | SubInteger -> "SubInt"
@@ -61,12 +66,15 @@ let token_to_string token =
   | DivFloat -> "DivFloat"
   | Concat -> "Concat"
   | Let -> "Let"
-  | Fun -> "Fun"
+  | In -> "In"
+  | Const -> "Const"
+  | Function -> "Fun"
   | Recursive -> "Recursive"
   | Enum -> "Enum"
   | Of -> "Of"
   | Struct -> "Struct"
-  | Import -> "Import"
+  | TypeVar s -> Printf.sprintf "TypeVar(%s)" s
+  | Open -> "Open"
   | Module -> "Module"
   | Comma -> "Comma"
   | Cons -> "Cons"
@@ -102,17 +110,20 @@ let chars_to_string chars =
 let rec collect_identifier chars acc =
   let string_to_token s =
     match s with
+    | s when String.starts_with ~prefix:"'" s -> TypeVar s
     | s when String.ends_with ~suffix:"." s -> failwith "Incomplete module access"
     | s when String.equal "_" s -> Wildcard
     | "true" -> Boolean(true)
     | "false" -> Boolean(false)
     | "let" -> Let
-    | "fun" -> Fun
+    | "in" -> In
+    | "const" -> Const
+    | "fun" -> Function
     | "rec" -> Recursive
     | "enum" -> Enum
     | "of" -> Of
     | "struct" -> Struct
-    | "import" -> Import
+    | "open" -> Open
     | "module" -> Module
     | "match" -> Match
     | _ -> Identifier(s)
@@ -121,7 +132,7 @@ let rec collect_identifier chars acc =
   match chars with
     | [] -> [], string_to_token (chars_to_string acc)
     | hd :: tl -> match hd with
-      | 'a'..'z' | 'A'..'Z' | '_' | '.' | '0'..'9' -> collect_identifier tl (hd :: acc)
+      | 'a'..'z' | 'A'..'Z' | '_' | '.' | '0'..'9' | '\'' -> collect_identifier tl (hd :: acc)
       | _ -> chars, string_to_token (chars_to_string acc)
 ;;
 
@@ -182,7 +193,7 @@ let collect_char chars =
     | '\\' -> tl, Char('\\')
     | '\'' -> tl, Char('\'')
     | _ -> failwith "Unknown escape character")
-  | _ -> failwith "Invalid char"
+  | _ -> collect_identifier chars ['\'']
 ;;
 
 
@@ -235,12 +246,24 @@ let collect_range chars =
 ;;
 
 
+let rec collect_comment chars acc =
+  match chars with
+  | [] -> [], Comment (chars_to_string acc)
+  | hd :: tl ->
+    (match hd with
+    | '\n' -> tl, Comment (chars_to_string acc)
+    | _ -> collect_comment tl (hd :: acc))
+
+
 let tokenize text =
   let rec aux chars tokens =
     match chars with
     | [] -> tokens
     | hd :: tl ->
       (match hd with
+      | '#' ->
+        (let chars, token = collect_comment tl [hd] in
+        aux chars (token :: tokens))
       | ' ' | '\n' | '\t' | '\r' -> aux tl tokens
       | '0'..'9' ->
         (let chars, token = collect_number tl [hd] in

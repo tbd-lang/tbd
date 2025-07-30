@@ -1,6 +1,3 @@
-open Tbd
-
-let _big = "
 open tbd.io  # this is what bring Io module into scope
 
 
@@ -24,8 +21,8 @@ module Status = {
     }
 
     fun print status = match status {
-        Status.success -> Io.print_line \"status: success\",
-        Status.failure n -> Io.print_line \"status: failure\",
+        Status.success -> Io.print_line "status: success",
+        Status.failure n -> Io.print_line "status: failure",
     }
 }
 
@@ -36,9 +33,9 @@ module Position = {
     fun new x y z = Position { x, y, z }
 
     fun print position = {
-        Io.print_line \"x: {position.x}\" then
-        Io.print_line \"y: {position.y}\" then
-        Io.print_line \"z: {position.z}\"
+        Io.print_line "x: {position.x}";
+        Io.print_line "y: {position.y}";
+        Io.print_line "z: {position.z}";
     }
 }
 
@@ -48,7 +45,7 @@ module List = {  # this will be builtin - this is an example
         fun rec aux l' acc = match l' {
             [] -> acc,
             hd :: tl -> aux tl (hd :: acc),
-        } in
+        };
         aux l [] 
     }
     
@@ -67,37 +64,8 @@ enum 'a LinkedList = {
 }
 
 fun main () = {
-    let p = Position.new 1 2 3 in
-    let s = Status.success () in
+    let p = Position.new 1 2 3;
+    let s = Status.success ();
     Position.print p;
     Status.print s;
 }
-"
-let tests = [
-  (* Const *)
-  "const a = 1";
-  "const a = 1.0";
-  "const a = true";
-  "const a = 'c'";
-  "const a = \"string\"";
-
-  (* Function *)
-  "fun add a b = ()";
-  "fun add a b = 1";
-  "fun add a b = 1.0";
-  "fun add a b = false";
-  "fun add a b = 'f'";
-  "fun add a b = \"this is a string\"";
-  "fun add a b = a"
-]
-
-let _ =
-  let run_test test = 
-    print_endline ("TEST: " ^ test);
-    let tokens = Lexer.tokenize test in
-    let ast = Parser.gen_ast tokens [] in 
-    Parser.print_ast ast;
-    print_newline ()
-  in
-  List.iter run_test tests
-;;

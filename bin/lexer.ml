@@ -51,7 +51,85 @@ let test_cases =
   
     ;"let a = 1;"
 
-    ; "let a = { let x = 31; let y = 13; x + y};"
+    ; "let a = { let x = 31; let y = 13; x + y};";
+
+
+    "
+    open core.io  # this is what bring Io module into scope
+
+
+module Status = {
+    enum Status = { success, failure of int }
+
+    fun success () = Status.success;
+    fun failure code = Status.failure code;
+
+    fun new code = match code {
+        0 -> Status.success,  # can write as `0 | 42 -> ...`
+        42 -> Status.success,
+        _ -> Status.failure code,
+    }
+
+    fun code status = match status {
+        Status.success -> 0,
+        Status.failure n -> m,  # trailing comma allowed and tells formatter to multi line
+    };
+
+    fun print status = match status {
+        Status.success -> Io.print_line \"status: success\",
+        Status.failure n -> Io.print_line \"status: failure\",
+    };
+}
+
+module Position = {
+    struct Position = { x : float, y : float, z : float }
+
+    # shorthand assignment
+    fun new x y z = Position { x, y, z };
+
+    fun print position = {
+        Io.print_line \"x: {position.x}\";
+        Io.print_line \"y: {position.y}\";
+        Io.print_line \"z: {position.z}\";
+    }
+}
+
+
+module List = {  # this will be builtin - this is an example
+    fun reverse l = {
+        fun rec aux l' acc = match l' {
+            [] -> acc,
+            hd :: tl -> aux tl (hd :: acc),
+        };
+        aux l []  
+        
+        # no return keyword, blocks evaluate to the value 
+        # of the last expr, if ; is used then they eval to unit `()`
+    }
+    
+    fun rec fold f acc l = match l {
+        [] -> reverse acc,
+        hd :: tl -> fold f (f acc hd) tl,
+    };
+}
+
+
+# constants must be primitives
+const PI = 3.1415926535897932384626;
+
+# recursive types area allowed
+enum 'var LinkedList = {
+    empty,
+    node of 'var * 'var LinkedList,
+}
+
+fun main () = {
+    let p = Position.new 1 2 3;
+    let s = Status.success ();
+
+    Position.print p;
+    Status.print s;
+}"
   ]
 ;;
 

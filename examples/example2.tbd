@@ -1,0 +1,61 @@
+module List {
+    fun new(size, f) {
+        fun rec inner(size, acc) {
+            match size {
+                0 -> acc,
+                i -> inner((size - 1), f(i) :: acc),
+            }
+        }
+        inner(size, [])
+    }
+
+
+    fun reverse(l) {
+        fun rec inner(l, acc) {
+            match l {
+                [] -> acc,
+                hd :: tl -> inner(tl, hd :: acc),
+            }
+        }
+        inner(l, [])
+    }
+
+
+    fun rec fold(f, acc, l) {
+        match l {
+            [] -> reverse(acc),
+            hd :: tl -> fold(f, f(acc, hd), tl),
+        }
+    }
+
+
+    fun zip(l1, l2) {
+        fun rec inner(l1, l2, acc) {
+            match l1, l2 {
+                [], [] -> Ok(reverse(acc)),
+                hd1 :: tl1, hd2 :: tl2 -> inner(tl1, tl2, (hd1, hd2) :: acc),
+                _ -> Error("l1 and l2 are different sizes"),
+            }
+        }
+        inner(l1, l2)
+    }
+
+
+    fun rec iter(f, l) {
+        match l {
+            [] -> (),
+            hd :: tl -> { f(hd);  iter(f, tl); },
+        }
+    }
+}
+
+
+fun main() {
+    let l1 = List.new(13, (i -> i));
+    let l2 = List.new(13, (i -> i));
+    let l = match List.zip(l1, l2) {
+        Ok(l) -> l,
+        Error(_) -> [],
+    };
+    List.iter((x -> Io.print_line("{x}")), l);
+}
