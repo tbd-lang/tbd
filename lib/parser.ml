@@ -7,13 +7,16 @@ type expr =
   | String of string
   | Identifier of string
   | Call of string * expr list
-  | Block of stmt list * expr
+  | Lambda of string list * stmt list * expr
 
 and stmt =
   | Import of string
   | Const of string * expr
-  | Function of string * string list * expr
   | Let of string * expr
+  | Function of string * string list * stmt list * expr
+  | Enum of string * string list * (string * typ list) list
+
+and typ = TypVar of string
 
 let rec string_of_expr expr =
   match expr with
@@ -29,9 +32,10 @@ let rec string_of_expr expr =
       "Call(%s, %s)"
       name
       (string_of_string_list (List.map (fun a -> string_of_expr a) args))
-  | Block (stmts, expr) ->
+  | Lambda (args, stmts, expr) ->
     Printf.sprintf
-      "Block(%s, %s)"
+      "Lambda(%s, %s, %s)"
+      (string_of_string_list args)
       (string_of_string_list (List.map (fun s -> string_of_stmt s) stmts))
       (string_of_expr expr)
 
@@ -39,13 +43,30 @@ and string_of_stmt stmt =
   match stmt with
   | Import name -> Printf.sprintf "Import(%s)" name
   | Const (name, expr) -> Printf.sprintf "Const(%s, %s)" name (string_of_expr expr)
-  | Function (name, args, expr) ->
+  | Let (name, expr) -> Printf.sprintf "Let(%s, %s)" name (string_of_expr expr)
+  | Function (name, args, stmts, expr) ->
     Printf.sprintf
-      "Function(%s, %s, %s)"
+      "Function(%s, %s, %s, %s)"
       name
       (string_of_string_list args)
+      (string_of_string_list (List.map (fun s -> string_of_stmt s) stmts))
       (string_of_expr expr)
-  | Let (name, expr) -> Printf.sprintf "Let(%s, %s)" name (string_of_expr expr)
+  | Enum (name, type_variables, variants) ->
+    let variants =
+      string_of_string_list
+        (List.map
+           (fun (n, ts) ->
+              Printf.sprintf
+                "Variant(%s, %s)"
+                n
+                (string_of_string_list (List.map (fun t -> string_of_typ t) ts)))
+           variants)
+    in
+    Printf.sprintf "Enum(%s, %s, %s)" name (string_of_string_list type_variables) variants
+
+and string_of_typ typ =
+  match typ with
+  | TypVar s -> Printf.sprintf "TypVar(%s)" s
 
 and string_of_string_list l =
   let rec aux l acc =
@@ -60,7 +81,7 @@ and string_of_string_list l =
 let rec collect_call tokens =
   let rec collect_args tokens args =
     match tokens with
-    | Lexer.RightBracket :: tl -> tl, args
+    | Lexer.RightParenthesis :: tl -> tl, args
     | Lexer.Comma :: tl -> collect_args tl args
     | _ ->
       let tl, expr = parse_expr tokens in
@@ -68,13 +89,45 @@ let rec collect_call tokens =
   in
   match tokens with
   | Lexer.Identifier name :: Lexer.LeftParenthesis :: tl ->
-    (match tl with
-     | _ ->
-       let tl, args = collect_args tl [] in
-       tl, Call (name, args))
+    let tl, args = collect_args tl [] in
+    tl, Call (name, args)
   | _ -> failwith "invalid Call syntax"
 
-and collect_block _ = failwith "collect_block not implemented"
+and collect_lambda tokens =
+  let rec collect_args tokens args =
+    match tokens with
+    | Lexer.RightParenthesis :: tl -> tl, args
+    | Lexer.Comma :: tl -> collect_args tl args
+    | Lexer.Identifier arg :: tl -> collect_args tl (arg :: args)
+    | _ -> failwith "invalid Lambda argument type"
+  in
+  let rec collect_body tokens stmts =
+    let rec consume_body tokens =
+      match tokens with
+      | Lexer.RightBrace :: tl -> tl
+      | _ :: tl -> consume_body tl
+      | _ -> failwith "unclosed Lambda body"
+    in
+    match tokens with
+    | Lexer.LeftBrace :: tl -> collect_body tl stmts
+    | Lexer.Let :: _ | Lexer.Function :: Lexer.Identifier _ :: _ ->
+      let tl, stmt = parse_stmt tokens in
+      collect_body tl (stmt :: stmts)
+    | Lexer.RightBrace :: tl -> tl, stmts, Unit
+    | _ ->
+      let tl, expr = parse_expr tokens in
+      let tl = consume_body tl in
+      tl, stmts, expr
+  in
+  match tokens with
+  | Lexer.Function :: Lexer.Unit :: tl ->
+    let tl, stmts, expr = collect_body tl [] in
+    tl, Lambda ([], stmts, expr)
+  | Lexer.Function :: Lexer.LeftParenthesis :: tl ->
+    let tl, args = collect_args tl [] in
+    let tl, stmts, expr = collect_body tl [] in
+    tl, Lambda (args, stmts, expr)
+  | _ -> failwith "invalid Lambda syntax"
 
 and parse_expr tokens =
   match tokens with
@@ -86,151 +139,126 @@ and parse_expr tokens =
   | Lexer.String s :: tl -> tl, String s
   | Lexer.Identifier _ :: Lexer.LeftParenthesis :: _ -> collect_call tokens
   | Lexer.Identifier name :: tl -> tl, Identifier name
-  | Lexer.LeftBrace :: _ -> collect_block tokens
   | Lexer.Semicolon :: tl -> tl, Unit
+  | Lexer.Function :: Lexer.LeftParenthesis :: _ -> collect_lambda tokens
   | _ -> failwith "invalid expression syntax"
-
-and collect_const tokens =
-  match tokens with
-  | Lexer.Const :: Lexer.Identifier name :: tl ->
-    let tl, expr = parse_expr tl in
-    tl, Const (name, expr)
-  | _ -> failwith "invalid Const syntax"
-
-and collect_function _ = failwith "collect_function not implemented"
-and collect_let _ = failwith "collect_let not implemented"
-
-and parse_stmt tokens =
-  match tokens with
-  | Lexer.Import :: Lexer.Identifier name :: Lexer.Semicolon :: tl -> tl, Import name
-  | Lexer.Const :: _ -> collect_const tokens
-  | Lexer.Function :: _ -> collect_function tokens
-  | Lexer.Let :: _ -> collect_let tokens
-  | _ -> failwith "invalid statement syntax"
-;;
-
-(*
-   let debug s =
-  print_endline ("DEBUG: " ^ s);
-  print_newline ()
-;;
-
-let rec collect_block tokens stmts =
-  match tokens with
-  | [] -> failwith "Unclosed block"
-  | Lexer.LeftBrace :: tl -> collect_block tl stmts
-  | Lexer.RightBrace :: tl -> tl, Block (stmts, Unit)
-  | Lexer.Function :: tl ->
-    let tokens, stmt = collect_function tl in
-    collect_block tokens (stmt :: stmts)
-  | Lexer.Let :: tl ->
-    let tokens, stmt = collect_let tl in
-    collect_block tokens (stmt :: stmts)
-  | _ ->
-    let tokens, expr = parse_expr tokens in
-    (match tokens with
-     | [] -> failwith "unlcosed block"
-     | Lexer.RightBrace :: tl -> tl, Block (stmts, expr)
-     | _ -> failwith "unsupported stuff after expression")
-
-and parse_expr tokens =
-  match tokens with
-  | [] -> tokens, Unit
-  | Lexer.Unit :: tl -> tl, Unit
-  | Lexer.Integer n :: tl -> tl, Integer n
-  | Lexer.Float f :: tl -> tl, Float f
-  | Lexer.Boolean b :: tl -> tl, Boolean b
-  | Lexer.Char c :: tl -> tl, Char c
-  | Lexer.String s :: tl -> tl, String s
-  | Lexer.Identifier name :: tl -> tl, Identifier name
-  | _ -> failwith "Unsupported expression"
-
-and string_list_to_string l =
-  let rec aux l acc =
-    match l with
-    | [] -> "[" ^ acc
-    | [ hd ] -> aux [] (hd ^ acc)
-    | hd :: tl -> aux tl (", " ^ hd ^ acc)
-  in
-  aux l "]"
-
-
-
-and collect_import tokens =
-  match tokens with
-  | [] -> failwith "Unclosed import"
-  | Lexer.Identifier name :: tl -> tl, Import name
-  | _ -> failwith "Unsupported import syntax"
-
-and collect_const tokens =
-  match tokens with
-  | [] -> failwith "Unclosed const"
-  | Lexer.Identifier name :: Lexer.Assignment :: tl ->
-    (match tl with
-     | [] -> failwith "Unclosed const"
-     | Lexer.Integer n :: tl' -> tl', Const (name, Integer n)
-     | Lexer.Float f :: tl' -> tl', Const (name, Float f)
-     | Lexer.Boolean b :: tl' -> tl', Const (name, Boolean b)
-     | Lexer.Char c :: tl' -> tl', Const (name, Char c)
-     | Lexer.String s :: tl' -> tl', Const (name, String s)
-     | _ -> failwith "Unsupported const type")
-  | _ -> failwith "Unsupported const syntax"
 
 and collect_function tokens =
   let rec collect_args tokens args =
     match tokens with
-    | [] -> failwith "Unclosed function"
-    | Lexer.Identifier name :: Lexer.Comma :: tl -> collect_args tl (name :: args)
-    | Lexer.Identifier name :: tl -> collect_args tl (name :: args)
     | Lexer.RightParenthesis :: tl -> tl, args
-    | _ -> failwith "Unsupported function argument type"
+    | Lexer.Comma :: tl -> collect_args tl args
+    | Lexer.Identifier arg :: tl -> collect_args tl (arg :: args)
+    | _ -> failwith "invalid Function argument type"
+  in
+  let rec collect_body tokens stmts =
+    let rec consume_body tokens =
+      match tokens with
+      | Lexer.RightBrace :: tl -> tl
+      | _ :: tl -> consume_body tl
+      | _ -> failwith "unclosed Function body"
+    in
+    match tokens with
+    | Lexer.LeftBrace :: tl -> collect_body tl stmts
+    | Lexer.Let :: _ | Lexer.Function :: Lexer.Identifier _ :: _ ->
+      let tl, stmt = parse_stmt tokens in
+      collect_body tl (stmt :: stmts)
+    | Lexer.RightBrace :: tl -> tl, stmts, Unit
+    | _ ->
+      let tl, expr = parse_expr tokens in
+      let tl = consume_body tl in
+      tl, stmts, expr
   in
   match tokens with
-  | [] -> failwith "Unclosed function"
-  | Lexer.Identifier name :: Lexer.Unit :: tl ->
-    let tokens, expr = collect_block tl [] in
-    List.iter (fun t -> debug (Lexer.token_to_string t)) tokens;
-    tokens, Function (name, [], expr)
-  | Lexer.Identifier name :: Lexer.LeftParenthesis :: tl ->
-    let tokens, args = collect_args tl [] in
-    let tokens, expr = collect_block tokens [] in
-    List.iter (fun t -> debug (Lexer.token_to_string t)) tokens;
-    tokens, Function (name, args, expr)
-  | _ -> failwith "Unsupported function name type"
+  | Lexer.Function :: Lexer.Identifier name :: Lexer.Unit :: tl ->
+    let tl, stmts, expr = collect_body tl [] in
+    tl, Function (name, [], stmts, expr)
+  | Lexer.Function :: Lexer.Identifier name :: Lexer.LeftParenthesis :: tl ->
+    let tl, args = collect_args tl [] in
+    let tl, stmts, expr = collect_body tl [] in
+    tl, Function (name, args, stmts, expr)
+  | _ -> failwith "invalid Function syntax"
 
 and collect_let tokens =
   match tokens with
-  | [] -> failwith "Unclosed let"
-  | Lexer.Identifier name :: Lexer.Assignment :: tl ->
-    let tokens, expr = parse_expr tl in
-    tokens, Let (name, expr)
-  | _ -> failwith "Unsupported let statement"
+  | Lexer.Let :: Lexer.Identifier name :: Lexer.Assignment :: tl ->
+    let tl, expr = parse_expr tl in
+    tl, Let (name, expr)
+  | _ -> failwith "invalid Let syntax"
 
-and parse_stmt tokens stmts =
+and parse_stmt tokens =
   match tokens with
-  | [] -> List.rev stmts
-  | Lexer.Import :: tl ->
-    let tokens, expr = collect_import tl in
-    parse_stmt tokens (expr :: stmts)
-  | Lexer.Const :: tl ->
-    let tokens, expr = collect_const tl in
-    parse_stmt tokens (expr :: stmts)
-  | Lexer.Function :: tl ->
-    let tokens, expr = collect_function tl in
-    parse_stmt tokens (expr :: stmts)
-  | Lexer.Let :: tl ->
-    let tokens, expr = collect_let tl in
-    parse_stmt tokens (expr :: stmts)
-  | Lexer.Semicolon :: tl -> parse_stmt tl []
-  | Lexer.RightBrace :: tl -> parse_stmt tl []
-  | _ -> failwith "Unsupported top-level expression"
+  | Lexer.Function :: _ -> collect_function tokens
+  | Lexer.Let :: _ -> collect_let tokens
+  | _ -> failwith "invalid statement syntax"
+
+and collect_const tokens =
+  match tokens with
+  | Lexer.Const :: Lexer.Identifier name :: Lexer.Assignment :: tl ->
+    let tl, expr = parse_expr tl in
+    tl, Const (name, expr)
+  | _ -> failwith "invalid Const syntax"
+
+and collect_enum tokens =
+  let rec collect_type_vars tokens type_vars =
+    match tokens with
+    | Lexer.RightChevron :: tl -> tl, type_vars
+    | Lexer.Comma :: tl -> collect_type_vars tl type_vars
+    | Lexer.Identifier type_arg :: tl -> collect_type_vars tl (type_arg :: type_vars)
+    | _ -> failwith "invalid type variable type"
+  in
+  let rec collect_variant_type_vars tokens type_vars =
+    match tokens with
+    | Lexer.LeftParenthesis :: tl -> collect_variant_type_vars tl type_vars
+    | Lexer.RightParenthesis :: tl -> tl, type_vars
+    | Lexer.Comma :: tl -> collect_variant_type_vars tl type_vars
+    | Lexer.Identifier type_var :: tl ->
+      collect_variant_type_vars tl (TypVar type_var :: type_vars)
+    | _ -> failwith "invalid variant type variable type"
+  in
+  let rec collect_variants tokens variants =
+    match tokens with
+    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_variants tl variants
+    | Lexer.Identifier variant :: tl ->
+      (match tl with
+       | Lexer.LeftParenthesis :: _ ->
+         let tl, args = collect_variant_type_vars tl [] in
+         collect_variants tl ((variant, args) :: variants)
+       | _ -> collect_variants tl ((variant, []) :: variants))
+    | Lexer.RightBrace :: tl -> tl, variants
+    | _ -> failwith "invalid variant type"
+  in
+  match tokens with
+  | Lexer.Enum :: Lexer.Identifier enum :: Lexer.LeftChevron :: tl ->
+    let tl, type_vars = collect_type_vars tl [] in
+    let tl, variants = collect_variants tl [] in
+    tl, Enum (enum, type_vars, variants)
+  | Lexer.Enum :: Lexer.Identifier enum :: tl ->
+    let tl, variants = collect_variants tl [] in
+    tl, Enum (enum, [], variants)
+  | _ -> failwith "invalid Enum syntax"
+
+and parse_toplevel tokens =
+  match tokens with
+  | Lexer.Import :: Lexer.Identifier name :: tl -> tl, Import name
+  | Lexer.Const :: _ -> collect_const tokens
+  | Lexer.Function :: _ -> collect_function tokens
+  | Lexer.Enum :: _ -> collect_enum tokens
+  | _ -> failwith "invalid toplevel syntax"
 ;;
 
 let rec print_ast stmts =
   match stmts with
   | [] -> ()
   | stmt :: tl ->
-    print_endline (stmt_to_string stmt);
+    print_endline (string_of_stmt stmt);
     print_ast tl
 ;;
-*)
+
+let rec gen_ast tokens exprs =
+  match tokens with
+  | [] -> exprs
+  | _ ->
+    let tokens, expr = parse_toplevel tokens in
+    gen_ast tokens (expr :: exprs)
+;;
