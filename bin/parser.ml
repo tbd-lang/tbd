@@ -25,6 +25,8 @@ let tests =
   ; "enum Option<T> { Some(T), None }"
   ; "enum Status { Success, Failure }"
   ; "fun error() { let e = Result.Error(\"hellooo\") Result.Ok(12) }"
+  ; "struct Person { name: string, age: int }"
+  ; "struct Person<T> { name: string, age: T }"
   ]
 ;;
 

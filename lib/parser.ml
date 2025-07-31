@@ -15,8 +15,11 @@ and stmt =
   | Let of string * expr
   | Function of string * string list * stmt list * expr
   | Enum of string * string list * (string * typ list) list
+  | Struct of string * string list * (string * typ) list
 
-and typ = TypVar of string
+and typ =
+  | TypeName of string
+  | TypeVar of string
 
 let rec string_of_expr expr =
   match expr with
@@ -63,10 +66,19 @@ and string_of_stmt stmt =
            variants)
     in
     Printf.sprintf "Enum(%s, %s, %s)" name (string_of_string_list type_variables) variants
+  | Struct (name, type_variables, fields) ->
+    let fields =
+      string_of_string_list
+        (List.map
+           (fun (n, t) -> Printf.sprintf "Field(%s, %s)" n (string_of_typ t))
+           fields)
+    in
+    Printf.sprintf "Struct(%s, %s, %s)" name (string_of_string_list type_variables) fields
 
 and string_of_typ typ =
   match typ with
-  | TypVar s -> Printf.sprintf "TypVar(%s)" s
+  | TypeName s -> Printf.sprintf "TypeName(%s)" s
+  | TypeVar s -> Printf.sprintf "TypeVar(%s)" s
 
 and string_of_string_list l =
   let rec aux l acc =
@@ -213,7 +225,7 @@ and collect_enum tokens =
     | Lexer.RightParenthesis :: tl -> tl, type_vars
     | Lexer.Comma :: tl -> collect_variant_type_vars tl type_vars
     | Lexer.Identifier type_var :: tl ->
-      collect_variant_type_vars tl (TypVar type_var :: type_vars)
+      collect_variant_type_vars tl (TypeVar type_var :: type_vars)
     | _ -> failwith "invalid variant type variable type"
   in
   let rec collect_variants tokens variants =
@@ -238,12 +250,39 @@ and collect_enum tokens =
     tl, Enum (enum, [], variants)
   | _ -> failwith "invalid Enum syntax"
 
+and collect_struct tokens =
+  let rec collect_type_vars tokens type_vars =
+    match tokens with
+    | Lexer.RightChevron :: tl -> tl, type_vars
+    | Lexer.Comma :: tl -> collect_type_vars tl type_vars
+    | Lexer.Identifier type_arg :: tl -> collect_type_vars tl (type_arg :: type_vars)
+    | _ -> failwith "invalid type variable type"
+  in
+  let rec collect_fields tokens fields =
+    match tokens with
+    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_fields tl fields
+    | Lexer.Identifier field :: Lexer.Colon :: Lexer.Identifier type_name :: tl ->
+      collect_fields tl ((field, TypeName type_name) :: fields)
+    | Lexer.RightBrace :: tl -> tl, fields
+    | _ -> failwith "invalid field type"
+  in
+  match tokens with
+  | Lexer.Struct :: Lexer.Identifier name :: Lexer.LeftChevron :: tl ->
+    let tl, type_vars = collect_type_vars tl [] in
+    let tl, fields = collect_fields tl [] in
+    tl, Struct (name, type_vars, fields)
+  | Lexer.Struct :: Lexer.Identifier name :: tl ->
+    let tl, fields = collect_fields tl [] in
+    tl, Struct (name, [], fields)
+  | _ -> failwith "invalid Struct syntax"
+
 and parse_toplevel tokens =
   match tokens with
   | Lexer.Import :: Lexer.Identifier name :: tl -> tl, Import name
   | Lexer.Const :: _ -> collect_const tokens
   | Lexer.Function :: _ -> collect_function tokens
   | Lexer.Enum :: _ -> collect_enum tokens
+  | Lexer.Struct :: _ -> collect_struct tokens
   | _ -> failwith "invalid toplevel syntax"
 ;;
 
