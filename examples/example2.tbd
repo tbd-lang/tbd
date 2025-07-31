@@ -1,61 +1,80 @@
-module List {
-    fun new(size, f) {
-        fun rec inner(size, acc) {
-            match size {
-                0 -> acc,
-                i -> inner((size - 1), f(i) :: acc),
-            }
-        }
-        inner(size, [])
-    }
+struct Person {
+	name: string,
+	age: int,
+}
+
+import tbd.option.Option
+
+const PI = 3.24259
 
 
-    fun reverse(l) {
-        fun rec inner(l, acc) {
-            match l {
-                [] -> acc,
-                hd :: tl -> inner(tl, hd :: acc),
-            }
-        }
-        inner(l, [])
-    }
-
-
-    fun rec fold(f, acc, l) {
-        match l {
-            [] -> reverse(acc),
-            hd :: tl -> fold(f, f(acc, hd), tl),
-        }
-    }
-
-
-    fun zip(l1, l2) {
-        fun rec inner(l1, l2, acc) {
-            match l1, l2 {
-                [], [] -> Ok(reverse(acc)),
-                hd1 :: tl1, hd2 :: tl2 -> inner(tl1, tl2, (hd1, hd2) :: acc),
-                _ -> Error("l1 and l2 are different sizes"),
-            }
-        }
-        inner(l1, l2)
-    }
-
-
-    fun rec iter(f, l) {
-        match l {
-            [] -> (),
-            hd :: tl -> { f(hd);  iter(f, tl); },
-        }
-    }
+# Result, Ok, Error will be included in prelude
+enum Result<T, E> {
+	Ok(T),
+	Error(E),
 }
 
 
-fun main() {
-    let l1 = List.new(13, (i -> i));
-    let l2 = List.new(13, (i -> i));
-    let l = match List.zip(l1, l2) {
-        Ok(l) -> l,
-        Error(_) -> [],
-    };
-    List.iter((x -> Io.print_line("{x}")), l);
+# List, Empty, Node will be included in prelude
+enum List<T> {
+	Empty,
+	Node(T, List<T>),
+}
+
+
+fun new(size, f) {
+	fun rec aux(size, acc) {
+		match size {
+			0 -> acc,
+			i -> aux((size - 1), Node(f(i), acc)),
+		}
+	}
+	aux(size, Empty)  # can use Empty instead of List.Empty due to prelude
+}
+
+
+fun reverse(l) {
+	fun rec aux(l, acc) {
+		match l {
+			Empty -> acc,
+			Node(hd, tl) -> aux(tl, Node(hd, acc)),
+		}
+	}
+  aux(l, Empty)
+}
+
+
+fun rec fold(f, acc, l) {
+	match l {
+		Empty -> reverse(acc),
+		Node(hd, tl) -> fold(f, f(acc, hd), tl),
+	}
+}
+
+
+fun anon_f {
+	(fun x, y, z -> (z, y, x))
+}
+
+
+fun zip(l1, l2) {
+	fun rec aux(l1, l2, acc) {
+		match l1, l2 {
+			Empty, Empty -> Ok(reverse(acc)),
+			Node(h1, t1), Node(h2, t2) -> aux(t1, t2, Node((h1, h2), acc)),
+			_ -> Error(()),
+		}
+	}
+	aux(l1, l2)
+}
+
+
+fun rec iter(f, l) {
+	match l {
+		Empty -> (),
+		Node(hd, tl) -> {
+			f(hd);
+			iter(f, tl)
+		},
+	}
 }

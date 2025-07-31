@@ -1,103 +1,30 @@
 open Tbd
 
-let _big = "
-open tbd.io  # this is what bring Io module into scope
-
-
-module Status = {
-    enum Status = { success, failure of int }
-
-    fun success () = Status.success
-    fun failure code = Status.failure code
-
-    fun new code = match code {
-        0 -> Status.success,  # can write as `0 | 42 -> ...`
-        42 -> Status.success,
-        _ -> Status.failure code,
-    }
-
-    fun code status = {  # can write in blocks or inline
-        match status {
-            Status.success -> 0,
-            Status.failure n -> m,  # trailing comma allowed and tells formatter to multi line
-        }
-    }
-
-    fun print status = match status {
-        Status.success -> Io.print_line \"status: success\",
-        Status.failure n -> Io.print_line \"status: failure\",
-    }
-}
-
-module Position = {
-    struct Position = { x : float, y : float, z : float }
-
-    # shorthand assignment
-    fun new x y z = Position { x, y, z }
-
-    fun print position = {
-        Io.print_line \"x: {position.x}\" then
-        Io.print_line \"y: {position.y}\" then
-        Io.print_line \"z: {position.z}\"
-    }
-}
-
-
-module List = {  # this will be builtin - this is an example
-    fun reverse l = {
-        fun rec aux l' acc = match l' {
-            [] -> acc,
-            hd :: tl -> aux tl (hd :: acc),
-        } in
-        aux l [] 
-    }
-    
-    fun rec fold f acc l = match l {
-        [] -> reverse acc,
-        hd :: tl -> fold f (f acc hd) tl,
-    }
-}
-
-
-const PI = 3.1415926535897932384626
-
-enum 'a LinkedList = {
-    empty,
-    node of 'a * 'a LinkedList,
-}
-
-fun main () = {
-    let p = Position.new 1 2 3 in
-    let s = Status.success () in
-    Position.print p;
-    Status.print s;
-}
-"
-let tests = [
-  (* Const *)
-  "const a = 1";
-  "const a = 1.0";
-  "const a = true";
-  "const a = 'c'";
-  "const a = \"string\"";
-
-  (* Function *)
-  "fun add a b = ()";
-  "fun add a b = 1";
-  "fun add a b = 1.0";
-  "fun add a b = false";
-  "fun add a b = 'f'";
-  "fun add a b = \"this is a string\"";
-  "fun add a b = a"
-]
+let tests =
+  [
+    "import path.to.module";
+    "import path.to.module";
+    "import path.to.module.Enum";
+    "import path.to.module.Enum.Field";
+    "const I = 23";
+    "const F = 12.34";
+    "const B = true";
+    "fun greet1(p) {}";
+    "fun greet2() {}";
+    "fun greet3(a, b, c) {}";
+    "fun fold(list) {}";
+    "fun fold(list) { () }";
+    "fun fold(list) { 1 }";
+    "fun fold(list) { 1.2 }";
+    "fun fold(list) { true }";
+  ]
 
 let _ =
-  let run_test test = 
+  let run_test test =
     print_endline ("TEST: " ^ test);
     let tokens = Lexer.tokenize test in
-    let ast = Parser.gen_ast tokens [] in 
+    let ast = Parser.parse_stmt tokens [] in
     Parser.print_ast ast;
     print_newline ()
   in
   List.iter run_test tests
-;;
