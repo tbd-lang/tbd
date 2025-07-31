@@ -219,34 +219,39 @@ and collect_enum tokens =
     | Lexer.Identifier type_arg :: tl -> collect_type_vars tl (type_arg :: type_vars)
     | _ -> failwith "invalid type variable type"
   in
-  let rec collect_variant_type_vars tokens type_vars =
+  let rec collect_variant_types type_vars tokens types =
     match tokens with
-    | Lexer.LeftParenthesis :: tl -> collect_variant_type_vars tl type_vars
-    | Lexer.RightParenthesis :: tl -> tl, type_vars
-    | Lexer.Comma :: tl -> collect_variant_type_vars tl type_vars
-    | Lexer.Identifier type_var :: tl ->
-      collect_variant_type_vars tl (TypeVar type_var :: type_vars)
+    | Lexer.LeftParenthesis :: tl -> collect_variant_types type_vars tl types
+    | Lexer.RightParenthesis :: tl -> tl, types
+    | Lexer.Comma :: tl -> collect_variant_types type_vars tl types
+    | Lexer.Identifier type_name :: tl ->
+      let t =
+        match List.exists (fun t -> String.equal t type_name) type_vars with
+        | true -> TypeVar type_name
+        | false -> TypeName type_name
+      in
+      collect_variant_types type_vars tl (t :: types)
     | _ -> failwith "invalid variant type variable type"
   in
-  let rec collect_variants tokens variants =
+  let rec collect_variants type_vars tokens variants =
     match tokens with
-    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_variants tl variants
+    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_variants type_vars tl variants
     | Lexer.Identifier variant :: tl ->
       (match tl with
        | Lexer.LeftParenthesis :: _ ->
-         let tl, args = collect_variant_type_vars tl [] in
-         collect_variants tl ((variant, args) :: variants)
-       | _ -> collect_variants tl ((variant, []) :: variants))
+         let tl, args = collect_variant_types type_vars tl [] in
+         collect_variants type_vars tl ((variant, args) :: variants)
+       | _ -> collect_variants type_vars tl ((variant, []) :: variants))
     | Lexer.RightBrace :: tl -> tl, variants
     | _ -> failwith "invalid variant type"
   in
   match tokens with
   | Lexer.Enum :: Lexer.Identifier enum :: Lexer.LeftChevron :: tl ->
     let tl, type_vars = collect_type_vars tl [] in
-    let tl, variants = collect_variants tl [] in
+    let tl, variants = collect_variants type_vars tl [] in
     tl, Enum (enum, type_vars, variants)
   | Lexer.Enum :: Lexer.Identifier enum :: tl ->
-    let tl, variants = collect_variants tl [] in
+    let tl, variants = collect_variants [] tl [] in
     tl, Enum (enum, [], variants)
   | _ -> failwith "invalid Enum syntax"
 
@@ -258,21 +263,26 @@ and collect_struct tokens =
     | Lexer.Identifier type_arg :: tl -> collect_type_vars tl (type_arg :: type_vars)
     | _ -> failwith "invalid type variable type"
   in
-  let rec collect_fields tokens fields =
+  let rec collect_fields type_vars tokens fields =
     match tokens with
-    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_fields tl fields
+    | Lexer.LeftBrace :: tl | Lexer.Comma :: tl -> collect_fields type_vars tl fields
     | Lexer.Identifier field :: Lexer.Colon :: Lexer.Identifier type_name :: tl ->
-      collect_fields tl ((field, TypeName type_name) :: fields)
+      let t =
+        match List.exists (fun t -> String.equal t type_name) type_vars with
+        | true -> TypeVar type_name
+        | false -> TypeName type_name
+      in
+      collect_fields type_vars tl ((field, t) :: fields)
     | Lexer.RightBrace :: tl -> tl, fields
     | _ -> failwith "invalid field type"
   in
   match tokens with
   | Lexer.Struct :: Lexer.Identifier name :: Lexer.LeftChevron :: tl ->
     let tl, type_vars = collect_type_vars tl [] in
-    let tl, fields = collect_fields tl [] in
+    let tl, fields = collect_fields type_vars tl [] in
     tl, Struct (name, type_vars, fields)
   | Lexer.Struct :: Lexer.Identifier name :: tl ->
-    let tl, fields = collect_fields tl [] in
+    let tl, fields = collect_fields [] tl [] in
     tl, Struct (name, [], fields)
   | _ -> failwith "invalid Struct syntax"
 
