@@ -28,6 +28,13 @@ let tests =
   ; "fun error() { let e = Result.Error(\"hellooo\") Result.Ok(12) }"
   ; "struct Person { name: string, age: int }"
   ; "struct Person<T> { name: string, age: T }"
+  ; "fun list() { let l = [1, 2, 3] l }"
+  ; "fun list() { let l = [1.0, 2.0, 3.0] l }"
+  ; "fun list() { let l = ['a', 'b', 'c'] l }"
+  ; "fun list() { let l = [\"a\", \"b\", \"c\"] l }"
+  ; "fun list() { let l = [] l }"
+  ; "fun list() { [] }"
+  ; "fun list() { let l = [[], [], []] l }"
   ]
 ;;
 

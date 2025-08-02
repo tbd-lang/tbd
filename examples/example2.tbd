@@ -1,21 +1,21 @@
+import tbd.option.Option
+
+
+const PI = 3.24259
+
+
 struct Person {
 	name: string,
 	age: int,
 }
 
-import tbd.option.Option
 
-const PI = 3.24259
-
-
-# Result, Ok, Error will be included in prelude
 enum Result<T, E> {
 	Ok(T),
 	Error(E),
 }
 
 
-# List, Empty, Node will be included in prelude
 enum List<T> {
 	Empty,
 	Node(T, List<T>),
@@ -23,57 +23,60 @@ enum List<T> {
 
 
 fun new(size, f) {
-	fun rec aux(size, acc) {
+	fun aux(size, acc) {
 		match size {
-			0 -> acc,
-			i -> aux((size - 1), Node(f(i), acc)),
+			0 -> { acc },
+			i -> { aux((size - 1), f(i) :: acc) },
 		}
 	}
-	aux(size, Empty)  # can use Empty instead of List.Empty due to prelude
+	aux(size, [])
 }
 
 
 fun reverse(l) {
-	fun rec aux(l, acc) {
+	fun aux(l, acc) {
 		match l {
-			Empty -> acc,
-			Node(hd, tl) -> aux(tl, Node(hd, acc)),
+			[] -> { acc },
+			hd :: tl -> { aux(tl, hd :: acc) },
 		}
 	}
-  aux(l, Empty)
+  	aux(l, Empty)
 }
 
 
-fun rec fold(f, acc, l) {
+fun fold(f, acc, l) {
 	match l {
-		Empty -> reverse(acc),
-		Node(hd, tl) -> fold(f, f(acc, hd), tl),
+		[] -> { reverse(acc) },
+		hd :: tl -> { fold(f, f(acc, hd), tl) },
 	}
 }
 
 
-fun anon_f {
-	(fun x, y, z -> (z, y, x))
+fun anon() {
+	fun(a, b) { a + b }
 }
 
 
 fun zip(l1, l2) {
-	fun rec aux(l1, l2, acc) {
-		match l1, l2 {
-			Empty, Empty -> Ok(reverse(acc)),
-			Node(h1, t1), Node(h2, t2) -> aux(t1, t2, Node((h1, h2), acc)),
-			_ -> Error(()),
+	fun aux(l1, l2, acc) {
+		match (l1, l2) {
+			([], []) -> { Ok(reverse(acc)) },
+			(h1 :: t1, h2 :: t2) -> {
+				aux(t1, t2, (h1, h2) :: acc)
+			},
+			_ -> { Error(()) },
 		}
 	}
 	aux(l1, l2)
 }
 
 
-fun rec iter(f, l) {
+fun iter(f, l) {
 	match l {
-		Empty -> (),
-		Node(hd, tl) -> {
-			f(hd); iter(f, tl)
+		[] -> { () },
+		hd :: tl -> {
+			f(hd);
+			iter(f, tl)
 		},
 	}
 }

@@ -8,6 +8,7 @@ type expr =
   | Identifier of string
   | Call of string * expr list
   | Lambda of string list * stmt list * expr
+  | List of expr list
 
 and stmt =
   | Import of string
@@ -41,6 +42,10 @@ let rec string_of_expr expr =
       (string_of_string_list args)
       (string_of_string_list (List.map (fun s -> string_of_stmt s) stmts))
       (string_of_expr expr)
+  | List l ->
+    Printf.sprintf
+      "List(%s)"
+      (string_of_string_list (List.map (fun e -> string_of_expr e) l))
 
 and string_of_stmt stmt =
   match stmt with
@@ -141,6 +146,15 @@ and collect_lambda tokens =
     tl, Lambda (args, stmts, expr)
   | _ -> failwith "invalid Lambda syntax"
 
+and collect_list tokens exprs =
+  match tokens with
+  | Lexer.LeftBracket :: tl -> collect_list tl []
+  | Lexer.RightBracket :: tl -> tl, List exprs
+  | Lexer.Comma :: tl -> collect_list tl exprs
+  | _ ->
+    let tl, expr = parse_expr tokens in
+    collect_list tl (expr :: exprs)
+
 and parse_expr tokens =
   match tokens with
   | Lexer.Unit :: tl -> tl, Unit
@@ -153,6 +167,7 @@ and parse_expr tokens =
   | Lexer.Identifier name :: tl -> tl, Identifier name
   | Lexer.Semicolon :: tl -> tl, Unit
   | Lexer.Function :: Lexer.LeftParenthesis :: _ -> collect_lambda tokens
+  | Lexer.LeftBracket :: _ -> collect_list tokens []
   | _ -> failwith "invalid expression syntax"
 
 and collect_function tokens =

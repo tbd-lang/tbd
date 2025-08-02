@@ -21,7 +21,6 @@ type token =
   | Const
   | Function
   | Main
-  | Recursive
   | Enum
   | Struct
   | Import
@@ -67,7 +66,6 @@ let token_to_string token =
   | Const -> "Const"
   | Function -> "Fun"
   | Main -> "Main"
-  | Recursive -> "Recursive"
   | Enum -> "Enum"
   | Struct -> "Struct"
   | Import -> "Import"
@@ -110,7 +108,6 @@ let rec collect_identifier chars acc =
     | "const" -> Const
     | "fun" -> Function
     | "main" -> Main
-    | "rec" -> Recursive
     | "enum" -> Enum
     | "struct" -> Struct
     | "import" -> Import
