@@ -1,0 +1,66 @@
+(* externs *)
+extern panic (msg : string) : never =
+  (prerr_endline ("panic: " ^ msg); exit 1)
+
+(* operators *)
+fun (|>) x f = f x
+fun (++) xs ys =
+  match xs with
+  | [] -> ys
+  | h :: t -> h :: (t ++ ys)
+
+(* module with recursion and array mutation *)
+module Math with
+  fun sum xs =
+    fun aux xs acc =
+      match xs with
+      | [] -> acc
+      | h :: t -> aux t (acc + h)
+    in
+    aux xs 0
+
+  fun take n xs =
+    fun aux xs k acc =
+      match xs, k with
+      | [], _ -> List.rev acc
+      | _, 0 -> List.rev acc
+      | h :: t, _ -> aux t (k - 1) (h :: acc)
+    in
+    aux xs n []
+
+  fun scale_array a factor =
+    n = Array.length a in
+    fun aux i =
+      match i == n with
+      | true -> ()
+      | false ->
+          a[i] <- a[i] * factor;
+          aux (i + 1)
+    in
+    aux 0
+end
+
+(* records, lists, arrays, and match-based branching *)
+fun describe_point {x, y} =
+  match x, y with
+  | 0, 0 -> "origin"
+  | 0, _ -> "on Y axis"
+  | _, 0 -> "on X axis"
+  | _, _ -> "elsewhere"
+
+let () =
+  xs = [1, 2, 3, 4, 5] in
+  first3 = Math.take 3 xs in
+  total = Math.sum first3 in
+  Printf.printf "sum first 3 = %d\n" total;
+
+  arr = {1, 2, 3} in
+  Math.scale_array arr 10;
+  Printf.printf "scaled array = {%d, %d, %d}\n" arr[0] arr[1] arr[2];
+
+  p = {x = 0, y = 5} in
+  Printf.printf "point: %s\n" (describe_point p);
+
+  match total with
+  | 0 -> panic "unexpected zero sum"
+  | _ -> ()

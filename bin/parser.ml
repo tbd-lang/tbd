@@ -35,6 +35,23 @@ let tests =
   ; "fun list() { let l = [] l }"
   ; "fun list() { [] }"
   ; "fun list() { let l = [[], [], []] l }"
+  ; "fun tuple() { let l = (1, 2, 3) l }"
+  ; "fun tuple() { let l = (1.0, 2.0, 3.0) l }"
+  ; "fun tuple() { let l = ('a', 'b', 'c') l }"
+  ; "fun tuple() { let l = (\"a\", \"b\", \"c\") l }"
+  ; "fun tuple() { let l = () l }"
+  ; "fun tuple() { () }"
+  ; "fun tuple() { let l = ((), (), ()) l }"
+  ; "fun array() { let l = {1, 2, 3} l }"
+  ; "fun array() { let l = {1.0, 2.0, 3.0} l }"
+  ; "fun array() { let l = {'a', 'b', 'c'} l }"
+  ; "fun array() { let l = {\"a\", \"b\", \"c\"} l }"
+  ; "fun array() { let l = {} l }"
+  ; "fun array() { {} }"
+  ; "fun array() { let l = {{}, {}, {}} l }"
+  ; "fun array() { let x = (1) x }"
+  ; "fun array() { let x = (1) x }"
+  ; "fun array() { let x = (1) x }"
   ]
 ;;
 

@@ -1,0 +1,28 @@
+fun swap (x, y) = (y, x)
+
+
+fun list reverse =
+    fun list acc aux =
+        match list with
+        | Empty -> acc
+        | (hd, tl) Node ->
+            let next  = (hd, acc) Node in
+            tl nex aux
+    in
+    list Empty aux
+
+fun f acc list fold =
+    match list with
+    | Empty -> acc
+    | (hd, tl) Node ->
+        f (acc hd f) tl fold
+
+fun f list map = f [] list fold
+
+fun f list iter =
+    
+
+let () =
+    let p = (1, 2) in
+    let x = p swap in
+    let y = x swap

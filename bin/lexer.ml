@@ -1,26 +1,18 @@
-open Tbd.Lexer
+open Tbd
 
-let test_cases =
-  [ "import path.to.module"
-  ; "import path.to.module.{qualified}"
-  ; "import path.to.module.{q1, q2}"
-  ; "const I = 23"
-  ; "const F = 12.34"
-  ; "const B = true"
-  ; "module name {}"
-  ; "fun greet1(p) {}"
-  ; "fun greet2() {}"
-  ; "fun greet3(a, b, c) {}"
-  ; "fun rec fold(list) {}"
-  ]
+let read_stdin () =
+  let buf = Buffer.create 4096 in
+  (try
+     while true do
+       Buffer.add_channel buf stdin 4096
+     done
+   with
+   | End_of_file -> ());
+  Buffer.contents buf
 ;;
 
 let () =
-  let run_test text =
-    let tokens = tokenize text in
-    print_endline ("TEST: " ^ text);
-    print_tokens tokens;
-    print_newline ()
-  in
-  List.iter (fun t -> run_test t) test_cases
+  let content = read_stdin () in
+  let tokens = Lexer.tokenize content in
+  Lexer.print_tokens tokens
 ;;

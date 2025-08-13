@@ -21,10 +21,11 @@ type token =
   | Const
   | Function
   | Main
-  | Enum
-  | Struct
+  | Type
+  | Of
   | Import
   | Module
+  | Dot
   | Comma
   | Semicolon
   | Colon
@@ -66,10 +67,11 @@ let token_to_string token =
   | Const -> "Const"
   | Function -> "Fun"
   | Main -> "Main"
-  | Enum -> "Enum"
-  | Struct -> "Struct"
+  | Type -> "Type"
+  | Of -> "Of"
   | Import -> "Import"
   | Module -> "Module"
+  | Dot -> "Dot"
   | Comma -> "Comma"
   | Cons -> "Cons"
   | Range -> "Range"
@@ -108,8 +110,8 @@ let rec collect_identifier chars acc =
     | "const" -> Const
     | "fun" -> Function
     | "main" -> Main
-    | "enum" -> Enum
-    | "struct" -> Struct
+    | "type" -> Type
+    | "of" -> Of
     | "import" -> Import
     | "module" -> Module
     | "match" -> Match
@@ -119,8 +121,7 @@ let rec collect_identifier chars acc =
   | [] -> [], string_to_token (chars_to_string acc)
   | hd :: tl ->
     (match hd with
-     | 'a' .. 'z' | 'A' .. 'Z' | '_' | '.' | '0' .. '9' ->
-       collect_identifier tl (hd :: acc)
+     | 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' -> collect_identifier tl (hd :: acc)
      | _ -> chars, string_to_token (chars_to_string acc))
 ;;
 
@@ -215,7 +216,7 @@ let collect_range chars =
   match chars with
   | [] -> failwith "Missing character after ."
   | '.' :: tl -> tl, Range
-  | _ -> failwith "Unsupported character after ."
+  | _ -> chars, Dot
 ;;
 
 let rec collect_comment chars acc =

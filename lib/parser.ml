@@ -9,6 +9,8 @@ type expr =
   | Call of string * expr list
   | Lambda of string list * stmt list * expr
   | List of expr list
+  | Tuple of expr list
+  | Array of expr list
 
 and stmt =
   | Import of string
@@ -45,6 +47,14 @@ let rec string_of_expr expr =
   | List l ->
     Printf.sprintf
       "List(%s)"
+      (string_of_string_list (List.map (fun e -> string_of_expr e) l))
+  | Tuple l ->
+    Printf.sprintf
+      "Tuple(%s)"
+      (string_of_string_list (List.map (fun e -> string_of_expr e) l))
+  | Array l ->
+    Printf.sprintf
+      "Array(%s)"
       (string_of_string_list (List.map (fun e -> string_of_expr e) l))
 
 and string_of_stmt stmt =
@@ -148,12 +158,38 @@ and collect_lambda tokens =
 
 and collect_list tokens exprs =
   match tokens with
-  | Lexer.LeftBracket :: tl -> collect_list tl []
-  | Lexer.RightBracket :: tl -> tl, List exprs
-  | Lexer.Comma :: tl -> collect_list tl exprs
-  | _ ->
-    let tl, expr = parse_expr tokens in
+  | Lexer.LeftBracket :: Lexer.RightBracket :: tl -> tl, List []
+  | Lexer.LeftBracket :: tl ->
+    let tl, expr = parse_expr tl in
     collect_list tl (expr :: exprs)
+  | Lexer.RightBracket :: tl -> tl, List exprs
+  | Lexer.Comma :: tl ->
+    let tl, expr = parse_expr tl in
+    collect_list tl (expr :: exprs)
+  | _ -> failwith "invalid List"
+
+and collect_tuple tokens exprs =
+  match tokens with
+  | Lexer.LeftParenthesis :: tl ->
+    let tl, expr = parse_expr tl in
+    collect_tuple tl (expr :: exprs)
+  | Lexer.RightParenthesis :: tl -> tl, Tuple exprs
+  | Lexer.Comma :: tl ->
+    let tl, expr = parse_expr tl in
+    collect_tuple tl (expr :: exprs)
+  | _ -> failwith "invalid Tuple"
+
+and collect_array tokens exprs =
+  match tokens with
+  | Lexer.LeftBrace :: Lexer.RightBrace :: tl -> tl, Array []
+  | Lexer.LeftBrace :: tl ->
+    let tl, expr = parse_expr tl in
+    collect_array tl (expr :: exprs)
+  | Lexer.RightBrace :: tl -> tl, Array exprs
+  | Lexer.Comma :: tl ->
+    let tl, expr = parse_expr tl in
+    collect_array tl (expr :: exprs)
+  | _ -> failwith "invalid Array"
 
 and parse_expr tokens =
   match tokens with
@@ -168,6 +204,8 @@ and parse_expr tokens =
   | Lexer.Semicolon :: tl -> tl, Unit
   | Lexer.Function :: Lexer.LeftParenthesis :: _ -> collect_lambda tokens
   | Lexer.LeftBracket :: _ -> collect_list tokens []
+  | Lexer.LeftParenthesis :: _ -> collect_tuple tokens []
+  | Lexer.LeftBrace :: _ -> collect_array tokens []
   | _ -> failwith "invalid expression syntax"
 
 and collect_function tokens =
@@ -186,7 +224,6 @@ and collect_function tokens =
       | _ -> failwith "unclosed Function body"
     in
     match tokens with
-    | Lexer.LeftBrace :: tl -> collect_body tl stmts
     | Lexer.Let :: _ | Lexer.Function :: Lexer.Identifier _ :: _ ->
       let tl, stmt = parse_stmt tokens in
       collect_body tl (stmt :: stmts)
@@ -198,10 +235,12 @@ and collect_function tokens =
   in
   match tokens with
   | Lexer.Function :: Lexer.Identifier name :: Lexer.Unit :: tl ->
+    let tl = Utils.advance tl in
     let tl, stmts, expr = collect_body tl [] in
     tl, Function (name, [], stmts, expr)
   | Lexer.Function :: Lexer.Identifier name :: Lexer.LeftParenthesis :: tl ->
     let tl, args = collect_args tl [] in
+    let tl = Utils.advance tl in
     let tl, stmts, expr = collect_body tl [] in
     tl, Function (name, args, stmts, expr)
   | _ -> failwith "invalid Function syntax"

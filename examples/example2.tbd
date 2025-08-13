@@ -1,82 +1,66 @@
-import tbd.option.Option
-
-
-const PI = 3.24259
-
-
-struct Person {
-	name: string,
-	age: int,
-}
-
-
-enum Result<T, E> {
-	Ok(T),
-	Error(E),
-}
-
-
-enum List<T> {
-	Empty,
-	Node(T, List<T>),
-}
-
-
-fun new(size, f) {
-	fun aux(size, acc) {
-		match size {
-			0 -> { acc },
-			i -> { aux((size - 1), f(i) :: acc) },
-		}
+module List {
+	type a list {
+		Empty,
+		Node of a * a list,
 	}
-	aux(size, [])
-}
 
+	fun make f n {
+		fun aux n acc {
+			match n {
+				0 -> acc,
+				_ -> {
+					let next = Node (f n, acc);
+					aux (n - 1) next
+				}
+			}
+		}
+		aux n Empty
+	}
 
-fun reverse(l) {
-	fun aux(l, acc) {
+	fun reverse l {
+		fun aux l acc {
+			match l {
+				Empty -> acc,
+				Node (hd, tl) -> aux tl (Node (hd, acc))
+			}
+		}
+		aux l Empty
+	}
+
+	fun fold f acc l {
 		match l {
-			[] -> { acc },
-			hd :: tl -> { aux(tl, hd :: acc) },
+			Empty -> acc,
+			Node (hd, tl) -> {
+				let acc = f acc hd;
+				fold f acc tl
+			}
 		}
 	}
-  	aux(l, Empty)
-}
 
-
-fun fold(f, acc, l) {
-	match l {
-		[] -> { reverse(acc) },
-		hd :: tl -> { fold(f, f(acc, hd), tl) },
-	}
-}
-
-
-fun anon() {
-	fun(a, b) { a + b }
-}
-
-
-fun zip(l1, l2) {
-	fun aux(l1, l2, acc) {
-		match (l1, l2) {
-			([], []) -> { Ok(reverse(acc)) },
-			(h1 :: t1, h2 :: t2) -> {
-				aux(t1, t2, (h1, h2) :: acc)
-			},
-			_ -> { Error(()) },
+	fun map f l {
+		fun aux l acc {
+			match l {
+				Empty -> reverse acc,
+				Node (hd, tl) -> {
+					let next = Node (f hd, acc);
+					aux tl next
+				}
+			}
 		}
 	}
-	aux(l1, l2)
+
+	fun iter f l {
+		match l {
+			Empty -> (),
+			Node (hd, tl) -> {
+				f hd;
+				iter f tl
+			}
+		}
+	}
 }
 
-
-fun iter(f, l) {
-	match l {
-		[] -> { () },
-		hd :: tl -> {
-			f(hd);
-			iter(f, tl)
-		},
-	}
+fun main () {
+	let l = List.Empty;
+	List.iter (fun x -> print_endline (string_of_int x)) l;
 }
