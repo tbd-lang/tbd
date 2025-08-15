@@ -1,0 +1,4 @@
+let a = add_int 1 12
+let x = concat_str "hello " "world!"
+let increment = add_int 1
+let b = increment 12

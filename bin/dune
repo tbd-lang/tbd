@@ -1,4 +1,4 @@
 (executable
- (name lexer)
- (modules lexer)
+ (name vertical_slice)
+ (modules vertical_slice)
  (libraries tbd))

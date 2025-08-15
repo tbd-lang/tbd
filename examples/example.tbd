@@ -1,71 +1,79 @@
-open tbd.io  # this is what bring Io module into scope
+let IntList = module {
+    type t =
+        | Empty
+        | Node of int * t
 
-
-module Status = {
-    enum Status = { success, failure of int }
-
-    fun success () = Status.success
-    fun failure code = Status.failure code
-
-    fun new code = match code {
-        0 -> Status.success,  # can write as `0 | 42 -> ...`
-        42 -> Status.success,
-        _ -> Status.failure code,
+    let make f n = {
+        let rec aux n acc = match n {
+            0 -> acc,
+            _ -> {
+                let acc = Node (f n, acc);
+                aux (n - 1) acc
+            }
+        };
+        aux n Empty
     }
 
-    fun code status = {  # can write in blocks or inline
-        match status {
-            Status.success -> 0,
-            Status.failure n -> m,  # trailing comma allowed and tells formatter to multi line
+    let reverse l = {
+        let rec aux l acc = match l {
+            Empty -> acc,
+            Node (h, t) -> aux t (Node (h, acc))
+        };
+        aux l Empty
+    }
+
+    let rec fold f acc l = match l {
+        Empty -> acc,
+        Node (h, t) -> fold f (f acc h) t
+    }
+
+    let map f l = {
+        let rec aux l acc = match l {
+            Empty -> reverse acc,
+            Node (h, t) -> {
+                let acc = Node (f h, acc);
+                aux t acc
+            }
+        };
+        aux l Empty
+    }
+
+    let rec iter f l = match l {
+        Empty -> (),
+        Node (h, t) -> {
+            f h;
+            iter f t
         }
     }
-
-    fun print status = match status {
-        Status.success -> Io.print_line "status: success",
-        Status.failure n -> Io.print_line "status: failure",
-    }
 }
 
-module Position = {
-    struct Position = { x : float, y : float, z : float }
-
-    # shorthand assignment
-    fun new x y z = Position { x, y, z }
-
-    fun print position = {
-        Io.print_line "x: {position.x}";
-        Io.print_line "y: {position.y}";
-        Io.print_line "z: {position.z}";
-    }
+let String = module {
+    let concat (a : string) (b : string) : string = @concat
 }
 
-
-module List = {  # this will be builtin - this is an example
-    fun reverse l = {
-        fun rec aux l' acc = match l' {
-            [] -> acc,
-            hd :: tl -> aux tl (hd :: acc),
-        };
-        aux l [] 
-    }
-    
-    fun rec fold f acc l = match l {
-        [] -> reverse acc,
-        hd :: tl -> fold f (f acc hd) tl,
-    }
+let Io = module {
+    let print (msg : string) : unit = @print
+    let print_line msg = print (String.concat msg "\n")
 }
 
-
-const PI = 3.1415926535897932384626
-
-enum 'a LinkedList = {
-    empty,
-    node of 'a * 'a LinkedList,
+type Printable = sig {
+    type t
+    val to_string (t : string) : string
 }
 
-fun main () = {
-    let p = Position.new 1 2 3;
-    let s = Status.success ();
-    Position.print p;
-    Status.print s;
+let MakePrinter (M : Printable) = module {
+    let print_line x = Io.print_line (M.to_string x)
+}
+
+let Int = module {
+	type t = int
+	let to_string = string_of_int
+}
+
+let IntPrinter = MakePrinter Int
+
+let () = {
+    let l = IntList.make (fun i -> i) 10;
+    let r = IntList.reverse l;
+    IntList.iter (fun x -> IntPrinter.print_line x) r
 }
