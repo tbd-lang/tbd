@@ -74,13 +74,19 @@ let builtins : env =
                 | VString y -> VString (x ^ y)
                 | _ -> failwith "concat_str expects string as second arg")
           | _ -> failwith "concat_str expects string as first arg") )
+  ; ( "int_to_str"
+    , VFunc
+        (fun a ->
+          match a with
+          | VInt x -> VString (string_of_int x)
+          | _ -> failwith "concat_str expects string as first arg") )
   ]
 ;;
 
 (* Pretty-print values *)
 let string_of_value = function
-  | VInt n -> string_of_int n
-  | VString s -> s
+  | VInt n -> Printf.sprintf "Int(%d)" n
+  | VString s -> Printf.sprintf "String(%s)" s
   | VFunc _ -> "<function>"
 ;;
 
