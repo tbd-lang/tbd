@@ -13,16 +13,20 @@ let ast =
   ast
 ;;
 
-open Parser (* so we can use Integer, String, Var, Call, Let directly *)
+open Parser (* AST: expr and stmt *)
 
+(* runtime values *)
 type value =
+  | VBool of bool
   | VInt of int
   | VString of string
-  | VFunc of (value -> value)
+  | VFunc of string * (value -> value)
 
 type env = (string * value) list
 
+(* evaluate expressions *)
 let rec eval_expr env = function
+  | Boolean b -> VBool b
   | Integer n -> VInt n
   | String s -> VString s
   | Var name ->
@@ -33,10 +37,18 @@ let rec eval_expr env = function
     let func_val = eval_expr env func_expr in
     let arg_val = eval_expr env arg_expr in
     (match func_val with
-     | VFunc f -> f arg_val
+     | VFunc (_, f) -> f arg_val
      | _ -> failwith "Trying to call a non-function value")
+  | Fun (param, body) ->
+    (* closure: capture env, bind param at call time *)
+    VFunc
+      ( "<fun>"
+      , fun arg ->
+          let env' = (param, arg) :: env in
+          eval_expr env' body )
 ;;
 
+(* execute statements *)
 let exec_stmt env = function
   | Let (name, expr) ->
     let value = eval_expr env expr in
@@ -50,47 +62,66 @@ let rec exec_program env = function
     exec_program env' rest
 ;;
 
-(* Built-in functions, in curried style *)
+(* pretty-print values *)
+let string_of_value = function
+  | VBool b -> string_of_bool b
+  | VInt n -> string_of_int n
+  | VString s -> s
+  | VFunc (label, _) -> label
+;;
+
+(* built-in functions *)
 let builtins : env =
-  [ ( "add_int"
+  [ ( "@add_int"
     , VFunc
-        (fun a ->
-          match a with
-          | VInt x ->
-            VFunc
-              (fun b ->
-                match b with
-                | VInt y -> VInt (x + y)
-                | _ -> failwith "add_int expects int as second arg")
-          | _ -> failwith "add_int expects int as first arg") )
-  ; ( "concat_str"
+        ( "int -> int -> int"
+        , fun a ->
+            match a with
+            | VInt x ->
+              VFunc
+                ( "int -> int"
+                , fun b ->
+                    match b with
+                    | VInt y -> VInt (x + y)
+                    | _ -> failwith "add_int expects int" )
+            | _ -> failwith "add_int expects int" ) )
+  ; ( "@concat_str"
     , VFunc
-        (fun a ->
-          match a with
-          | VString x ->
-            VFunc
-              (fun b ->
-                match b with
-                | VString y -> VString (x ^ y)
-                | _ -> failwith "concat_str expects string as second arg")
-          | _ -> failwith "concat_str expects string as first arg") )
-  ; ( "int_to_str"
+        ( "string -> string -> string"
+        , fun a ->
+            match a with
+            | VString x ->
+              VFunc
+                ( "string -> string"
+                , fun b ->
+                    match b with
+                    | VString y -> VString (x ^ y)
+                    | _ -> failwith "concat_str expects string" )
+            | _ -> failwith "concat_str expects string" ) )
+  ; ( "@int_to_str"
     , VFunc
-        (fun a ->
-          match a with
-          | VInt x -> VString (string_of_int x)
-          | _ -> failwith "concat_str expects string as first arg") )
+        ( "int -> string"
+        , fun a ->
+            match a with
+            | VInt x -> VString (string_of_int x)
+            | _ -> failwith "int_to_str expects int" ) )
+  ; ( "@int_equal"
+    , VFunc
+        ( "int -> int -> bool"
+        , fun a ->
+            match a with
+            | VInt x ->
+              VFunc
+                ( "int -> bool"
+                , fun b ->
+                    match b with
+                    | VInt y -> VBool (x = y)
+                    | _ -> failwith "int_equal expects int" )
+            | _ -> failwith "int_equal expects int" ) )
   ]
 ;;
 
-(* Pretty-print values *)
-let string_of_value = function
-  | VInt n -> Printf.sprintf "Int(%d)" n
-  | VString s -> Printf.sprintf "String(%s)" s
-  | VFunc _ -> "<function>"
-;;
-
-(* Example run *)
+(* run the program produced by your parser (ast : stmt list) *)
 let () =
   let final_env = exec_program builtins ast in
   List.rev final_env

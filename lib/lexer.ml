@@ -1,4 +1,5 @@
 type t =
+  | Boolean of bool
   | Integer of int
   | String of string
   | Identifier of string
@@ -8,6 +9,7 @@ type t =
 
 let token_to_string token =
   match token with
+  | Boolean b -> Printf.sprintf "Boolean(%b)" b
   | Integer n -> Printf.sprintf "Integer(%d)" n
   | String s -> Printf.sprintf "String(%s)" s
   | Identifier s -> Printf.sprintf "Identifier(%s)" s
@@ -40,6 +42,8 @@ let rec collect_string chars acc =
 let rec collect_identifier chars acc =
   let string_to_token s =
     match s with
+    | "true" -> Boolean true
+    | "false" -> Boolean false
     | "let" -> Let
     | _ -> Identifier s
   in

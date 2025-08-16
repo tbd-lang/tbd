@@ -1,18 +1,22 @@
 type expr =
+  | Boolean of bool
   | Integer of int
   | String of string
   | Var of string
   | Call of expr * expr
+  | Fun of string * expr
 
 and stmt = Let of string * expr
 
 let rec string_of_expr expr =
   match expr with
+  | Boolean b -> Printf.sprintf "Boolean(%b)" b
   | Integer n -> Printf.sprintf "Integer(%d)" n
   | String s -> Printf.sprintf "String(%s)" s
   | Var name -> Printf.sprintf "Var(%s)" name
   | Call (expr1, expr2) ->
     Printf.sprintf "Call(%s, %s)" (string_of_expr expr1) (string_of_expr expr2)
+  | Fun (name, expr2) -> Printf.sprintf "Fun(%s, %s)" name (string_of_expr expr2)
 
 and string_of_stmt stmt =
   match stmt with
@@ -42,6 +46,7 @@ and collect_var_or_call tokens =
 
 and collect_expr tokens =
   match tokens with
+  | Lexer.Boolean b :: tl -> tl, Boolean b
   | Lexer.String s :: tl -> tl, String s
   | Lexer.Identifier _ :: _ ->
     let tokens, expr = collect_var_or_call tokens in
@@ -51,10 +56,18 @@ and collect_expr tokens =
 and collect_let tokens =
   let tokens, name =
     match tokens with
-    | Lexer.Identifier name :: Lexer.Equal :: tl -> tl, name
-    | _ -> failwith "Invalid let syntax"
+    | Lexer.Identifier name :: tl -> tl, name
+    | _ -> failwith "Invalid let syntax: expected identifier after let"
   in
-  let tokens, expr = collect_expr tokens in
+  let rec collect_params tokens params =
+    match tokens with
+    | Lexer.Identifier p :: tl -> collect_params tl (params @ [ p ])
+    | Lexer.Equal :: tl -> tl, params
+    | _ -> failwith "Invalid let syntax: expected parameter or '='"
+  in
+  let tokens, params = collect_params tokens [] in
+  let tokens, body = collect_expr tokens in
+  let expr = List.fold_right (fun p acc -> Fun (p, acc)) params body in
   tokens, Let (name, expr)
 
 and collect_stmt tokens =
