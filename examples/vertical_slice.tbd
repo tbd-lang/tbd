@@ -1,14 +1,5 @@
-let a = @add_int 1 12
-let f a b = @add_int a b
-let s = @int_to_str 12
-let x = @concat_str "hello " "world!"
-let increment = @add_int 1
-let b = increment 12
-let x = f 1 2
-
-
-let yes = true
-let no = false
-
-let x = @int_equal 1 2
-let x = @int_equal 2 2
+let () = @print_line "a + b"
+let a = @read_line "Enter a: "
+let b = @read_line "Enter b: "
+let result = @add_int (@str_to_int a) (@str_to_int b)
+let () = @print_line (@concat_str "Result: " (@int_to_str result))

@@ -3,13 +3,13 @@ open Tbd
 let tokens =
   let text = Utils.read_file "examples/vertical_slice.tbd" in
   let tokens = Lexer.tokenize text in
-  Lexer.print_tokens tokens;
+  (* Lexer.print_tokens tokens; *)
   tokens
 ;;
 
 let ast =
   let ast = Parser.gen_ast tokens in
-  Parser.print_ast ast;
+  (* Parser.print_ast ast; *)
   ast
 ;;
 
@@ -17,6 +17,7 @@ open Parser (* AST: expr and stmt *)
 
 (* runtime values *)
 type value =
+  | VUnit
   | VBool of bool
   | VInt of int
   | VString of string
@@ -26,6 +27,7 @@ type env = (string * value) list
 
 (* evaluate expressions *)
 let rec eval_expr env = function
+  | Unit -> VUnit
   | Boolean b -> VBool b
   | Integer n -> VInt n
   | String s -> VString s
@@ -46,13 +48,21 @@ let rec eval_expr env = function
       , fun arg ->
           let env' = (param, arg) :: env in
           eval_expr env' body )
+  | Match (cond_expr, then_expr, else_expr) ->
+    (match eval_expr env cond_expr with
+     | VBool true -> eval_expr env then_expr
+     | VBool false -> eval_expr env else_expr
+     | _ -> failwith "match expects a boolean condition")
 ;;
 
 (* execute statements *)
 let exec_stmt env = function
-  | Let (name, expr) ->
+  | Let (Some name, expr) ->
     let value = eval_expr env expr in
     (name, value) :: env
+  | Let (None, expr) ->
+    let _ = eval_expr env expr in
+    env
 ;;
 
 let rec exec_program env = function
@@ -63,7 +73,8 @@ let rec exec_program env = function
 ;;
 
 (* pretty-print values *)
-let string_of_value = function
+let _string_of_value = function
+  | VUnit -> "()"
   | VBool b -> string_of_bool b
   | VInt n -> string_of_int n
   | VString s -> s
@@ -105,6 +116,13 @@ let builtins : env =
             match a with
             | VInt x -> VString (string_of_int x)
             | _ -> failwith "int_to_str expects int" ) )
+  ; ( "@str_to_int"
+    , VFunc
+        ( "string -> int"
+        , fun a ->
+            match a with
+            | VString s -> VInt (int_of_string s)
+            | _ -> failwith "str_to_int expects string" ) )
   ; ( "@int_equal"
     , VFunc
         ( "int -> int -> bool"
@@ -118,12 +136,39 @@ let builtins : env =
                     | VInt y -> VBool (x = y)
                     | _ -> failwith "int_equal expects int" )
             | _ -> failwith "int_equal expects int" ) )
+  ; ( "@read_line"
+    , VFunc
+        ( "string -> string"
+        , fun a ->
+            match a with
+            | VString prompt ->
+              print_string prompt;
+              (* show prompt without newline *)
+              flush stdout;
+              (* force it to appear *)
+              let input = read_line () in
+              VString input
+            | _ -> failwith "@read_line expects a string" ) )
+  ; ( "@print_line"
+    , VFunc
+        ( "string -> unit"
+        , fun a ->
+            match a with
+            | VString msg ->
+              print_endline msg;
+              VUnit
+            | _ -> failwith "@read_line expects a string" ) )
   ]
 ;;
 
 (* run the program produced by your parser (ast : stmt list) *)
-let () =
+(* let () =
   let final_env = exec_program builtins ast in
   List.rev final_env
   |> List.iter (fun (name, v) -> Printf.printf "%s = %s\n" name (string_of_value v))
+;; *)
+
+let () =
+  let _ = exec_program builtins ast in
+  ()
 ;;
