@@ -1,13 +1,13 @@
 let IntList = module {
     type t =
         | Empty
-        | Node of int * t
+        | Node of Int * t
 
     let make f n = {
         let rec aux n acc = match n {
             0 -> acc,
             _ -> {
-                let acc = Node (f n, acc);
+                let acc = Node (f n, acc) in
                 aux (n - 1) acc
             }
         };
@@ -31,7 +31,7 @@ let IntList = module {
         let rec aux l acc = match l {
             Empty -> reverse acc,
             Node (h, t) -> {
-                let acc = Node (f h, acc);
+                let acc = Node (f h, acc) in
                 aux t acc
             }
         };
@@ -77,3 +77,26 @@ let () = {
     let r = IntList.reverse l;
     IntList.iter (fun x -> IntPrinter.print_line x) r
 }
+
+let f x = if @int_equal x 0 then 0 else 100000
+
+let g x = 
+	if @int_equal x 0 then {
+		let y = @add_int x 2;
+		@add_int y 1000
+	} else 12
+
+
+let h x = 
+	if @int_equal x 0 then {
+		let y = @add_int x 2;
+		@add_int y 1000
+	} else {
+		12
+	}
+		
+		
+let i x = 
+	if @int_equal x 0 then 1000 else {
+		12
+	}

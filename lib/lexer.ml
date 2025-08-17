@@ -5,11 +5,12 @@ type t =
   | String of string
   | Identifier of string
   | Let
-  | Match
+  | Rec
+  | If
+  | Then
+  | Else
   | Equal
-  | Minus
-  | Comma
-  | Arrow
+  | Semicolon
   | LeftParenthesis
   | RightParenthesis
   | LeftBrace
@@ -24,11 +25,12 @@ let token_to_string token =
   | String s -> Printf.sprintf "String(%s)" s
   | Identifier s -> Printf.sprintf "Identifier(%s)" s
   | Let -> "Let"
-  | Match -> "Match"
+  | Rec -> "Rec"
+  | If -> "If"
+  | Then -> "Then"
+  | Else -> "Else"
   | Equal -> "Equal"
-  | Minus -> "Minus"
-  | Comma -> "Comma"
-  | Arrow -> "Arrow"
+  | Semicolon -> "Semicolon"
   | LeftParenthesis -> "LeftParenthesis"
   | RightParenthesis -> "RightParenthesis"
   | LeftBrace -> "LeftBrace"
@@ -69,7 +71,10 @@ let rec collect_identifier chars acc =
     | "true" -> Boolean true
     | "false" -> Boolean false
     | "let" -> Let
-    | "match" -> Match
+    | "rec" -> Rec
+    | "if" -> If
+    | "then" -> Then
+    | "else" -> Else
     | _ -> Identifier s
   in
   match chars with
@@ -80,10 +85,10 @@ let rec collect_identifier chars acc =
      | _ -> chars, string_to_token (Utils.chars_to_string acc))
 ;;
 
-let collect_minus chars =
+let rec collect_comment chars =
   match chars with
-  | '>' :: tl -> tl, Arrow
-  | _ -> chars, Minus
+  | ([] as tl) | '\n' :: tl -> tl
+  | _ :: tl -> collect_comment tl
 ;;
 
 let tokenize text =
@@ -102,11 +107,11 @@ let tokenize text =
        | 'a' .. 'z' | 'A' .. 'Z' | '_' | '\'' | '@' ->
          let chars, token = collect_identifier tl [ hd ] in
          aux chars (token :: tokens)
+       | '#' ->
+         let chars = collect_comment tl in
+         aux chars tokens
        | '=' -> aux tl (Equal :: tokens)
-       | '-' ->
-         let chars, token = collect_minus tl in
-         aux chars (token :: tokens)
-       | ',' -> aux tl (Comma :: tokens)
+       | ';' -> aux tl (Semicolon :: tokens)
        | '(' ->
          let chars, token = collect_unit tl in
          aux chars (token :: tokens)

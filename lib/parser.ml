@@ -6,9 +6,12 @@ type expr =
   | Var of string
   | Call of expr * expr
   | Fun of string * expr
-  | Match of expr * expr * expr
+  | Block of stmt list * expr
+  | IfThenElse of expr * expr * expr
 
-and stmt = Let of string option * expr
+and stmt =
+  | Let of string * expr
+  | LetRec of string * expr
 
 let rec string_of_expr expr =
   match expr with
@@ -20,22 +23,23 @@ let rec string_of_expr expr =
   | Call (expr1, expr2) ->
     Printf.sprintf "Call(%s, %s)" (string_of_expr expr1) (string_of_expr expr2)
   | Fun (name, expr2) -> Printf.sprintf "Fun(%s, %s)" name (string_of_expr expr2)
-  | Match (cond, yes, no) ->
+  | Block (stmts, expr) ->
     Printf.sprintf
-      "Match(%s, %s, %s)"
-      (string_of_expr cond)
-      (string_of_expr yes)
-      (string_of_expr no)
+      "Block(%s, %s)"
+      (Utils.string_of_string_list
+         (List.rev (List.map (fun s -> string_of_stmt s) stmts)))
+      (string_of_expr expr)
+  | IfThenElse (eif, ethen, eelse) ->
+    Printf.sprintf
+      "IfThenElse(%s, %s, %s)"
+      (string_of_expr eif)
+      (string_of_expr ethen)
+      (string_of_expr eelse)
 
 and string_of_stmt stmt =
   match stmt with
-  | Let (name, expr) ->
-    Printf.sprintf
-      "Let(%s, %s)"
-      (match name with
-       | Some name -> name
-       | None -> "None")
-      (string_of_expr expr)
+  | Let (name, expr) -> Printf.sprintf "Let(%s, %s)" name (string_of_expr expr)
+  | LetRec (name, expr) -> Printf.sprintf "LetRec(%s, %s)" name (string_of_expr expr)
 
 and collect_var_or_call tokens =
   let tokens, name =
@@ -45,7 +49,12 @@ and collect_var_or_call tokens =
   in
   let rec collect_args tokens acc =
     match tokens with
-    | [ Lexer.EOF ] | Lexer.Let :: _ | Lexer.LeftBrace :: _ -> tokens, List.rev acc
+    | [ Lexer.EOF ]
+    | Lexer.Let :: _
+    | Lexer.RightBrace :: _
+    | Lexer.Semicolon :: _
+    | Lexer.Then :: _
+    | Lexer.Else :: _ -> tokens, List.rev acc
     | Lexer.RightParenthesis :: tl -> tl, List.rev acc
     | Lexer.Integer n :: tl -> collect_args tl (Integer n :: acc)
     | Lexer.String s :: tl -> collect_args tl (String s :: acc)
@@ -65,19 +74,36 @@ and collect_var_or_call tokens =
     let call_expr = List.fold_left (fun f arg -> Call (f, arg)) (Var name) args in
     tokens, call_expr
 
-and collect_match tokens =
-  let tokens, cond = collect_expr tokens in
-  match tokens with
-  | Lexer.LeftBrace :: Lexer.Boolean true :: Lexer.Arrow :: tl1 ->
-    let tokens, e1 = collect_expr tl1 in
-    (match tokens with
-     | Lexer.Comma :: Lexer.Boolean false :: Lexer.Arrow :: tl2 ->
-       let tokens, e2 = collect_expr tl2 in
-       (match tokens with
-        | Lexer.RightBrace :: tl3 -> tl3, Match (cond, e1, e2)
-        | _ -> failwith "expected '}' after match")
-     | _ -> failwith "expected 'false -> expr' in match")
-  | _ -> failwith "expected '{ true -> expr , false -> expr }'"
+and collect_block tokens =
+  let rec aux tokens stmts =
+    match tokens with
+    | Lexer.Let :: _ ->
+      let tokens, stmt = collect_stmt tokens in
+      (match Utils.advance tokens with
+       | Some (Lexer.Semicolon, tl) -> aux tl (stmt :: stmts)
+       | _ -> failwith "Block let requires ;")
+    | _ ->
+      let tokens, expr = collect_expr tokens in
+      (match Utils.advance tokens with
+       | Some (Lexer.RightBrace, tl) -> tl, Block (List.rev stmts, expr)
+       | Some (Lexer.Semicolon, tl) -> aux tl (Let ("()", expr) :: stmts)
+       | _ -> failwith "Block must end in an expression")
+  in
+  aux tokens []
+
+and collect_if tokens =
+  let tokens, eif = collect_expr tokens in
+  let tokens, ethen =
+    match tokens with
+    | Lexer.Then :: tl -> collect_expr tl
+    | _ -> failwith "If statement requires then"
+  in
+  let tokens, eelse =
+    match tokens with
+    | Lexer.Else :: tl -> collect_expr tl
+    | _ -> failwith "If statement requires then"
+  in
+  tokens, IfThenElse (eif, ethen, eelse)
 
 and collect_expr tokens =
   match tokens with
@@ -92,17 +118,31 @@ and collect_expr tokens =
   | Lexer.Identifier _ :: _ ->
     let tokens, expr = collect_var_or_call tokens in
     tokens, expr
-  | Lexer.Match :: tl ->
-    let tokens, expr = collect_match tl in
+  | Lexer.LeftBrace :: tl ->
+    let tokens, expr = collect_block tl in
+    tokens, expr
+  | Lexer.If :: tl ->
+    let tokens, expr = collect_if tl in
     tokens, expr
   | hd :: _ -> failwith (Printf.sprintf "Invalid expr: %s" (Lexer.token_to_string hd))
   | _ -> failwith "Invalid expr"
 
 and collect_let tokens =
+  let tokens, is_rec =
+    match Utils.peek tokens with
+    | Some Lexer.Rec ->
+      let _, tokens =
+        match Utils.advance tokens with
+        | Some x -> x
+        | _ -> failwith "could not advance when checking recursiveness"
+      in
+      tokens, true
+    | _ -> tokens, false
+  in
   let tokens, name =
     match tokens with
-    | Lexer.Unit :: tl -> tl, None
-    | Lexer.Identifier name :: tl -> tl, Some name
+    | Lexer.Unit :: tl -> tl, "()"
+    | Lexer.Identifier name :: tl -> tl, name
     | _ -> failwith "Invalid let syntax: expected identifier after let"
   in
   let rec collect_params tokens params =
@@ -113,8 +153,12 @@ and collect_let tokens =
   in
   let tokens, params = collect_params tokens [] in
   let tokens, body = collect_expr tokens in
-  let expr = List.fold_right (fun p acc -> Fun (p, acc)) params body in
-  tokens, Let (name, expr)
+  let expr =
+    match params with
+    | [] -> body
+    | _ -> List.fold_right (fun p acc -> Fun (p, acc)) params body
+  in
+  tokens, if is_rec then LetRec (name, expr) else Let (name, expr)
 
 and collect_stmt tokens =
   match tokens with

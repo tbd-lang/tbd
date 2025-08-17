@@ -1,5 +1,12 @@
-let () = @print_line "a + b"
-let a = @read_line "Enter a: "
-let b = @read_line "Enter b: "
-let result = @add_int (@str_to_int a) (@str_to_int b)
-let () = @print_line (@concat_str "Result: " (@int_to_str result))
+let run_server = {
+    let rec aux i = {
+        @print_line (@int_to_str i);
+        aux (@add_int i 1)
+    };
+    aux 0
+}
+
+
+let () = {
+    run_server 0
+}

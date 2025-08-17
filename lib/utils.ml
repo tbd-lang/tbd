@@ -20,7 +20,7 @@ let peek l =
 let advance l =
   match l with
   | [] -> None
-  | _ :: tl -> Some tl
+  | hd :: tl -> Some (hd, tl)
 ;;
 
 let read_file filename =
