@@ -11,6 +11,16 @@ let string_of_string_list l =
   aux l "]"
 ;;
 
+let string_of_string_tuple l =
+  let rec aux l acc =
+    match l with
+    | [] -> "[" ^ acc
+    | [ hd ] -> aux [] (hd ^ acc)
+    | hd :: tl -> aux tl (", " ^ hd ^ acc)
+  in
+  aux l "]"
+;;
+
 let peek l =
   match l with
   | [] -> None
