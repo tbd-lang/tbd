@@ -1,9 +1,9 @@
 let run_server () = {
     let rec aux i = {
         @print_line (@int_to_str i);
-        aux (@add_int i 1)
+        if @int_equal i 0 then () else aux (@mul_int i 2)
     };
-    aux 0
+    aux 13
 }
 
 
