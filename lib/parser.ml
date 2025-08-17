@@ -56,6 +56,8 @@ and collect_var_or_call tokens =
     | Lexer.Then :: _
     | Lexer.Else :: _ -> tokens, List.rev acc
     | Lexer.RightParenthesis :: tl -> tl, List.rev acc
+    | Lexer.Unit :: tl -> collect_args tl (Unit :: acc)
+    | Lexer.Boolean b :: tl -> collect_args tl (Boolean b :: acc)
     | Lexer.Integer n :: tl -> collect_args tl (Integer n :: acc)
     | Lexer.String s :: tl -> collect_args tl (String s :: acc)
     | Lexer.Identifier id :: tl -> collect_args tl (Var id :: acc)
@@ -114,6 +116,7 @@ and collect_expr tokens =
   | Lexer.Unit :: tl -> tl, Unit
   | Lexer.Boolean b :: tl -> tl, Boolean b
   | Lexer.Integer n :: tl -> tl, Integer n
+  | Lexer.Minus :: Lexer.Integer n :: tl -> tl, Integer (-1 * n)
   | Lexer.String s :: tl -> tl, String s
   | Lexer.Identifier _ :: _ ->
     let tokens, expr = collect_var_or_call tokens in
@@ -148,6 +151,7 @@ and collect_let tokens =
   let rec collect_params tokens params =
     match tokens with
     | Lexer.Identifier p :: tl -> collect_params tl (params @ [ p ])
+    | Lexer.Unit :: tl -> collect_params tl (params @ [ "()" ])
     | Lexer.Equal :: tl -> tl, params
     | _ -> failwith "Invalid let syntax: expected parameter or '='"
   in

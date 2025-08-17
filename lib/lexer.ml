@@ -10,6 +10,7 @@ type t =
   | Then
   | Else
   | Equal
+  | Minus
   | Semicolon
   | LeftParenthesis
   | RightParenthesis
@@ -30,6 +31,7 @@ let token_to_string token =
   | Then -> "Then"
   | Else -> "Else"
   | Equal -> "Equal"
+  | Minus -> "Minus"
   | Semicolon -> "Semicolon"
   | LeftParenthesis -> "LeftParenthesis"
   | RightParenthesis -> "RightParenthesis"
@@ -111,6 +113,7 @@ let tokenize text =
          let chars = collect_comment tl in
          aux chars tokens
        | '=' -> aux tl (Equal :: tokens)
+       | '-' -> aux tl (Minus :: tokens)
        | ';' -> aux tl (Semicolon :: tokens)
        | '(' ->
          let chars, token = collect_unit tl in
