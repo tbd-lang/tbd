@@ -1,12 +1,47 @@
-let run_server () = {
-    let rec aux i = {
-        @print_line (@int_to_str i);
-        if @int_equal i 0 then () else aux (@mul_int i 2)
+let List_reverse l n = {
+    let rec aux l i acc = {
+        if Int_equal i 1 then {
+            let hd = Tuple_fst l;
+            let last = Tuple_snd l;
+            (last, (hd, acc))
+        } else {
+            let hd = Tuple_fst l;
+            let tl = Tuple_snd l;
+            aux tl (Int_sub i 1) (hd, acc)
+        }
     };
-    aux 13
+    aux l n ()
 }
 
+
+let rec List_iter f l n = {
+    if Int_equal n 1 then {
+        let hd = Tuple_fst l;
+        let last = Tuple_snd l;
+        f hd;
+        f last
+    } else {
+        let hd = Tuple_fst l;
+        let tl = Tuple_snd l;
+        f hd;
+        List_iter f tl (Int_sub n 1)
+    }
+}
+
+
+let print_int x = Io_print_line (Int_to_string x)
 
 let () = {
-    run_server ()
+    let l = (1, (2, (3, 4)));
+    List_iter print_int l 4;
+    let r = List_reverse l 4;
+    List_iter print_int r 4
 }
+
+
+
+let () =
+    let t = (1, 2, 3, 4) in
+    List.iter print_int l 4;
+    let r = List_reverse l 4 in
+    Listiter print_int r 4

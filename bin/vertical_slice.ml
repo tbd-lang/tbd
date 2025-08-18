@@ -22,23 +22,9 @@ type value =
   | VInt of int
   | VString of string
   | VFunc of string * (value -> value)
+  | VTuple of value list
 
 type env = (string * value) list
-
-let _string_of_value v =
-  match v with
-  | VInt i -> string_of_int i
-  | VString s -> "\"" ^ s ^ "\""
-  | VBool b -> string_of_bool b
-  | VUnit -> "()"
-  | VFunc _ -> "<function>"
-;;
-
-let _print_env env =
-  print_endline "=== ENVIRONMENT ===";
-  List.iter (fun (name, v) -> Printf.printf "%s = %s\n" name (_string_of_value v)) env;
-  print_endline "==================="
-;;
 
 (* evaluate expressions *)
 let rec eval_expr env expr =
@@ -77,6 +63,7 @@ let rec eval_expr env expr =
      | VBool true -> eval_expr env t_branch
      | VBool false -> eval_expr env f_branch
      | _ -> failwith "Condition must be a boolean")
+  | Tuple exprs -> VTuple (List.map (eval_expr env) exprs)
 
 (* execute statements *)
 and exec_stmt env stmt =
@@ -103,18 +90,9 @@ let rec exec_program env = function
     exec_program env' rest
 ;;
 
-(* pretty-print values *)
-let _string_of_value = function
-  | VUnit -> "()"
-  | VBool b -> string_of_bool b
-  | VInt n -> string_of_int n
-  | VString s -> s
-  | VFunc (label, _) -> label
-;;
-
 (* built-in functions *)
 let builtins : env =
-  [ ( "@add_int"
+  [ ( "Int_add"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -125,9 +103,9 @@ let builtins : env =
                 , fun b ->
                     match b with
                     | VInt y -> VInt (x + y)
-                    | _ -> failwith "add_int expects int" )
-            | _ -> failwith "add_int expects int" ) )
-  ; ( "@sub_int"
+                    | _ -> failwith "Int_add expects int" )
+            | _ -> failwith "Int_add expects int" ) )
+  ; ( "Int_sub"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -138,9 +116,9 @@ let builtins : env =
                 , fun b ->
                     match b with
                     | VInt y -> VInt (x - y)
-                    | _ -> failwith "@sub_int expects int" )
-            | _ -> failwith "@sub_int expects int" ) )
-  ; ( "@mul_int"
+                    | _ -> failwith "Int_sub expects int" )
+            | _ -> failwith "Int_sub expects int" ) )
+  ; ( "Int_mul"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -151,9 +129,9 @@ let builtins : env =
                 , fun b ->
                     match b with
                     | VInt y -> VInt (x * y)
-                    | _ -> failwith "@mul_int expects int" )
-            | _ -> failwith "@mul_int expects int" ) )
-  ; ( "@div_int"
+                    | _ -> failwith "Int_mul expects int" )
+            | _ -> failwith "Int_mul expects int" ) )
+  ; ( "Int_div"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -163,11 +141,10 @@ let builtins : env =
                 ( "int -> int"
                 , fun b ->
                     match b with
-                    | VInt 0 -> failwith "@div_int: division by zero"
                     | VInt y -> VInt (x / y)
-                    | _ -> failwith "@div_int expects int" )
-            | _ -> failwith "@div_int expects int" ) )
-  ; ( "@mod_int"
+                    | _ -> failwith "Int_div expects int" )
+            | _ -> failwith "Int_div expects int" ) )
+  ; ( "Int_mod"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -177,54 +154,10 @@ let builtins : env =
                 ( "int -> int"
                 , fun b ->
                     match b with
-                    | VInt 0 -> failwith "@mod_int: division by zero"
                     | VInt y -> VInt (x mod y)
-                    | _ -> failwith "@mod_int expects int" )
-            | _ -> failwith "@mod_int expects int" ) )
-  ; ( "@pow_int"
-    , VFunc
-        ( "int -> int -> int"
-        , fun a ->
-            match a with
-            | VInt x ->
-              VFunc
-                ( "int -> int"
-                , fun b ->
-                    match b with
-                    | VInt y ->
-                      if y < 0
-                      then failwith "@pow_int: negative exponent not supported"
-                      else VInt (int_of_float (float_of_int x ** float_of_int y))
-                    | _ -> failwith "@pow_int expects int" )
-            | _ -> failwith "@pow_int expects int" ) )
-  ; ( "@concat_str"
-    , VFunc
-        ( "string -> string -> string"
-        , fun a ->
-            match a with
-            | VString x ->
-              VFunc
-                ( "string -> string"
-                , fun b ->
-                    match b with
-                    | VString y -> VString (x ^ y)
-                    | _ -> failwith "concat_str expects string" )
-            | _ -> failwith "concat_str expects string" ) )
-  ; ( "@int_to_str"
-    , VFunc
-        ( "int -> string"
-        , fun a ->
-            match a with
-            | VInt x -> VString (string_of_int x)
-            | _ -> failwith "int_to_str expects int" ) )
-  ; ( "@str_to_int"
-    , VFunc
-        ( "string -> int"
-        , fun a ->
-            match a with
-            | VString s -> VInt (int_of_string s)
-            | _ -> failwith "str_to_int expects string" ) )
-  ; ( "@int_equal"
+                    | _ -> failwith "Int_mod expects int" )
+            | _ -> failwith "Int_mod expects int" ) )
+  ; ( "Int_equal"
     , VFunc
         ( "int -> int -> bool"
         , fun a ->
@@ -235,9 +168,9 @@ let builtins : env =
                 , fun b ->
                     match b with
                     | VInt y -> VBool (x = y)
-                    | _ -> failwith "int_equal expects int" )
-            | _ -> failwith "int_equal expects int" ) )
-  ; ( "@int_compare"
+                    | _ -> failwith "Int_equal expects int" )
+            | _ -> failwith "Int_equal expects int" ) )
+  ; ( "Int_compare"
     , VFunc
         ( "int -> int -> int"
         , fun a ->
@@ -247,23 +180,83 @@ let builtins : env =
                 ( "int -> int"
                 , fun b ->
                     match b with
-                    | VInt y -> VInt (Int.compare x y)
-                    | _ -> failwith "int_compare expects int" )
-            | _ -> failwith "int_compare expects int" ) )
-  ; ( "@read_line"
+                    | VInt y -> VInt (compare x y)
+                    | _ -> failwith "Int_compare expects int" )
+            | _ -> failwith "Int_compare expects int" ) )
+    (* float operations *)
+  ; ( "Float_add"
     , VFunc
-        ( "string -> string"
+        ( "float -> float -> float"
         , fun a ->
             match a with
-            | VString prompt ->
-              print_string prompt;
-              (* show prompt without newline *)
-              flush stdout;
-              (* force it to appear *)
-              let input = read_line () in
-              VString input
-            | _ -> failwith "@read_line expects a string" ) )
-  ; ( "@print_line"
+            | VString sa ->
+              (* assuming string holds float literal for now? *)
+              let fa = float_of_string sa in
+              VFunc
+                ( "float -> float"
+                , fun b ->
+                    match b with
+                    | VString sb -> VString (string_of_float (fa +. float_of_string sb))
+                    | _ -> failwith "Float_add expects float" )
+            | _ -> failwith "Float_add expects float" ) )
+    (* TODO: Float_sub, Float_mul, Float_div, Float_equal, etc. *)
+
+    (* tuples *)
+  ; ( "Tuple_fst"
+    , VFunc
+        ( "('a * 'b) -> 'a"
+        , fun a ->
+            match a with
+            | VTuple [ x; _ ] -> x
+            | _ -> failwith "Tuple_fst expects a 2-tuple" ) )
+  ; ( "Tuple_snd"
+    , VFunc
+        ( "('a * 'b) -> 'b"
+        , fun a ->
+            match a with
+            | VTuple [ _; y ] -> y
+            | _ -> failwith "Tuple_snd expects a 2-tuple" ) )
+  ; ( "String_concat"
+    , VFunc
+        ( "string -> string -> string"
+        , fun a ->
+            match a with
+            | VString x ->
+              VFunc
+                ( "string -> string"
+                , fun b ->
+                    match b with
+                    | VString y -> VString (x ^ y)
+                    | _ -> failwith "String_concat expects string" )
+            | _ -> failwith "String_concat expects string" ) )
+  ; ( "String_compare"
+    , VFunc
+        ( "string -> string -> int"
+        , fun a ->
+            match a with
+            | VString x ->
+              VFunc
+                ( "string -> int"
+                , fun b ->
+                    match b with
+                    | VString y -> VInt (compare x y)
+                    | _ -> failwith "String_compare expects string" )
+            | _ -> failwith "String_compare expects string" ) )
+  ; ( "Int_to_string"
+    , VFunc
+        ( "int -> string"
+        , fun a ->
+            match a with
+            | VInt x -> VString (string_of_int x)
+            | _ -> failwith "Int_to_string expects int" ) )
+  ; ( "String_to_int"
+    , VFunc
+        ( "string -> int"
+        , fun a ->
+            match a with
+            | VString s -> VInt (int_of_string s)
+            | _ -> failwith "String_to_int expects string" ) )
+  ; ( "Io_print_line"
     , VFunc
         ( "string -> unit"
         , fun a ->
@@ -271,18 +264,20 @@ let builtins : env =
             | VString msg ->
               print_endline msg;
               VUnit
-            | _ -> failwith "@print_line expects a string" ) )
+            | _ -> failwith "Io_print_line expects a string" ) )
+  ; ( "Io_read_line"
+    , VFunc
+        ( "string -> string"
+        , fun a ->
+            match a with
+            | VString prompt ->
+              print_string prompt;
+              flush stdout;
+              (* ensure prompt shows *)
+              let input = read_line () in
+              VString input
+            | _ -> failwith "Io_read_line expects a string" ) )
   ]
 ;;
 
-(* run the program produced by your parser (ast : stmt list) *)
-(* let () =
-  let final_env = exec_program builtins ast in
-  List.rev final_env
-  |> List.iter (fun (name, v) -> Printf.printf "%s = %s\n" name (string_of_value v))
-;; *)
-
-let () =
-  let _ = exec_program builtins ast in
-  ()
-;;
+let _ = exec_program builtins ast

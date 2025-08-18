@@ -12,6 +12,7 @@ type t =
   | Equal
   | Minus
   | Semicolon
+  | Comma
   | LeftParenthesis
   | RightParenthesis
   | LeftBrace
@@ -33,6 +34,7 @@ let token_to_string token =
   | Equal -> "Equal"
   | Minus -> "Minus"
   | Semicolon -> "Semicolon"
+  | Comma -> "Comma"
   | LeftParenthesis -> "LeftParenthesis"
   | RightParenthesis -> "RightParenthesis"
   | LeftBrace -> "LeftBrace"
@@ -115,6 +117,7 @@ let tokenize text =
        | '=' -> aux tl (Equal :: tokens)
        | '-' -> aux tl (Minus :: tokens)
        | ';' -> aux tl (Semicolon :: tokens)
+       | ',' -> aux tl (Comma :: tokens)
        | '(' ->
          let chars, token = collect_unit tl in
          aux chars (token :: tokens)

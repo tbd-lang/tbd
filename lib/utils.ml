@@ -2,6 +2,7 @@ let chars_to_string c = List.rev c |> List.to_seq |> String.of_seq
 let string_to_chars s = String.to_seq s |> List.of_seq
 
 let string_of_string_list l =
+  let l = List.rev l in
   let rec aux l acc =
     match l with
     | [] -> "[" ^ acc
