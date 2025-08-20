@@ -1,4 +1,0 @@
-(executable
- (name vertical_slice)
- (modules vertical_slice)
- (libraries tbd))
