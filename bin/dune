@@ -1,0 +1,10 @@
+(executable
+ (name main)
+ (modules main lexer parser ast)
+ (libraries))
+
+(menhir
+ (modules parser))
+
+(ocamllex
+ (modules lexer))
