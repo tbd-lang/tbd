@@ -2,7 +2,8 @@ fun test() {}
 
 fun main() {
     fun inner() {
-        ()
+        let x = 'x';
+        let newline = '\n';
     }
 
     let x = {

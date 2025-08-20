@@ -2,6 +2,7 @@ type ident = string
 
 type expr =
   | EUnit
+  | EChar of char
   | EInt of int
   | EFloat of float
   | EBlock of decl list * expr
@@ -33,6 +34,7 @@ let string_of_string_list l =
 
 let rec string_of_expr = function
   | EUnit -> "EUnit"
+  | EChar c -> "EChar(" ^ String.make 1 c ^ ")"
   | EInt n -> "EInt(" ^ Int.to_string n ^ ")"
   | EFloat n -> "EFloat(" ^ Float.to_string n ^ ")"
   | EBlock (decls, expr) ->

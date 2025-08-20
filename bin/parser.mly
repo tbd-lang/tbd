@@ -4,6 +4,7 @@ open Ast
 
 %token <string> IDENT
 %token UNIT
+%token <char> CHAR
 %token <int> INT
 %token <float> FLOAT
 %token FUN LPAREN RPAREN COMMA
@@ -28,6 +29,7 @@ decls:
 
 expr:
   | UNIT { EUnit }
+  | CHAR { EChar($1) }
   | INT { EInt($1) }
   | FLOAT { EFloat($1) }
   | LBRACE decls opt_expr RBRACE { EBlock($2, $3) }
