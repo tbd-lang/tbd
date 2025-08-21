@@ -2,7 +2,7 @@ let () =
   let lexbuf = Lexing.from_channel stdin in
   try
     let program = Parser.program Lexer.token lexbuf in
-    Ast.print_program program
+    Emit.emit_program "test.ml" program
   with
   | Lexer.Lex_error msg ->
     prerr_endline ("Lex error: " ^ msg);

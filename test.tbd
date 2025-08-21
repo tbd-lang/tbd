@@ -1,20 +1,9 @@
-fun test() {}
+fun add(a, b) {
+    12
+}
 
 fun main() {
-    fun inner() {
-        let x = 'x';
-        let newline = '\n';
-    }
-
-    let x = {
-        let e = 3;
-        let f = 9;
-        ()
-    };
-
-    let x = 1;
-    let y = 2;
-    let z = 5;
-
-    1.1
+    let a = 1;
+    let b = 2;
+    ()
 }

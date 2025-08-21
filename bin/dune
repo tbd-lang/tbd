@@ -1,6 +1,6 @@
 (executable
  (name main)
- (modules main lexer parser ast)
+ (modules main lexer parser ast emit)
  (libraries))
 
 (menhir

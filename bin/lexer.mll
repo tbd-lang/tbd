@@ -6,12 +6,6 @@ exception Lex_error of string
 rule token = parse
   | "()" { UNIT }
   | "'" [^ '\\'] "'" { CHAR (Lexing.lexeme_char lexbuf 1) }
-  | "'" "\\n" "'" { CHAR '\n' }
-  | "'" "\\t" "'" { CHAR '\t' }
-  | "'" "\\r" "'" { CHAR '\r' }
-  | "'" "\\b" "'" { CHAR '\b' }
-  | "'" "\\'" "'" { CHAR '\'' }
-  | "'" "\\\\" "'" { CHAR '\\' }
   | ['0'-'9']+ as n { INT (int_of_string n) }
   | ['0'-'9']+ ['.'] ['0'-'9']+ as n { FLOAT (float_of_string n) }
   | "let" { LET }
