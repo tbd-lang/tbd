@@ -16,6 +16,16 @@ let rec emit_expr expr =
   | Let (name, expr, next) -> let_ ^ name ^ eq_ ^ emit_expr expr ^ in_ ^ emit_expr next
   | Fun (name, params, expr, next) ->
     let params = List.rev params in
+    let_
+    ^ name
+    ^ space_
+    ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
+    ^ eq_
+    ^ emit_expr expr
+    ^ in_
+    ^ emit_expr next
+  | FunRec (name, params, expr, next) ->
+    let params = List.rev params in
     letrec_
     ^ name
     ^ space_
@@ -34,11 +44,23 @@ let rec emit_expr expr =
   | Add (a, b) -> emit_expr a ^ space_ ^ "+" ^ space_ ^ emit_expr b
   | Sub (a, b) -> emit_expr a ^ space_ ^ "-" ^ space_ ^ emit_expr b
   | Mul (a, b) -> emit_expr a ^ space_ ^ "*" ^ space_ ^ emit_expr b
+  | Div (a, b) -> emit_expr a ^ space_ ^ "/" ^ space_ ^ emit_expr b
   | PrintInt expr -> "print_endline (string_of_int " ^ emit_expr expr ^ ")" ^ space_
 
 and emit_decl decl =
   match decl with
   | DFun (name, params, expr) ->
+    (match name with
+     | "main" -> let_ ^ "()" ^ space_ ^ eq_ ^ emit_expr expr
+     | _ ->
+       let params = List.rev params in
+       let_
+       ^ name
+       ^ space_
+       ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
+       ^ eq_
+       ^ emit_expr expr)
+  | DFunRec (name, params, expr) ->
     (match name with
      | "main" -> let_ ^ "()" ^ space_ ^ eq_ ^ emit_expr expr
      | _ ->

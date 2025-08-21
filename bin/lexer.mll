@@ -7,6 +7,7 @@ rule token = parse
   | ['0'-'9']+ as n { INT (int_of_string n) }
   | "let" { LET }
   | "fun" { FUN }
+  | "rec" { REC }
   | "if" { IF }
   | "else" { ELSE }
   | "print_int" { PRINTINT }
@@ -15,6 +16,7 @@ rule token = parse
   | '+' { PLUS }
   | '-' { MINUS }
   | '*' { STAR }
+  | '/' { SLASH }
   | '(' { LPAREN }
   | ')' { RPAREN }
   | '{' { LBRACE }

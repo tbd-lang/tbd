@@ -1,5 +1,5 @@
 fun fib(n) {
-    fun inner(i, a, b) {
+    fun rec inner(i, a, b) {
         if i = 0 { a }
         else { inner((i - 1), b, (a + b)) }
     }
