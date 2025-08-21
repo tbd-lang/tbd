@@ -12,6 +12,7 @@ let else_ = "else "
 let rec emit_expr expr =
   match expr with
   | Int n -> string_of_int n ^ space_
+  | Float n -> string_of_float n ^ space_
   | Var name -> name ^ space_
   | Let (name, expr, next) -> let_ ^ name ^ eq_ ^ emit_expr expr ^ in_ ^ emit_expr next
   | Fun (name, params, expr, next) ->
@@ -40,11 +41,20 @@ let rec emit_expr expr =
   | Parens expr -> "(" ^ emit_expr expr ^ ")" ^ space_
   | If (cond, ethen, eelse) ->
     if_ ^ emit_expr cond ^ then_ ^ emit_expr ethen ^ else_ ^ emit_expr eelse
-  | Equal (a, b) -> emit_expr a ^ space_ ^ "=" ^ space_ ^ emit_expr b
   | Add (a, b) -> emit_expr a ^ space_ ^ "+" ^ space_ ^ emit_expr b
   | Sub (a, b) -> emit_expr a ^ space_ ^ "-" ^ space_ ^ emit_expr b
   | Mul (a, b) -> emit_expr a ^ space_ ^ "*" ^ space_ ^ emit_expr b
   | Div (a, b) -> emit_expr a ^ space_ ^ "/" ^ space_ ^ emit_expr b
+  | FAdd (a, b) -> emit_expr a ^ space_ ^ "+." ^ space_ ^ emit_expr b
+  | FSub (a, b) -> emit_expr a ^ space_ ^ "-." ^ space_ ^ emit_expr b
+  | FMul (a, b) -> emit_expr a ^ space_ ^ "*." ^ space_ ^ emit_expr b
+  | FDiv (a, b) -> emit_expr a ^ space_ ^ "/." ^ space_ ^ emit_expr b
+  | Equal (a, b) -> emit_expr a ^ space_ ^ "=" ^ space_ ^ emit_expr b
+  | NotEqual (a, b) -> emit_expr a ^ space_ ^ "<>" ^ space_ ^ emit_expr b
+  | Gt (a, b) -> emit_expr a ^ space_ ^ ">" ^ space_ ^ emit_expr b
+  | Gte (a, b) -> emit_expr a ^ space_ ^ ">=" ^ space_ ^ emit_expr b
+  | Lt (a, b) -> emit_expr a ^ space_ ^ "<" ^ space_ ^ emit_expr b
+  | Lte (a, b) -> emit_expr a ^ space_ ^ "<=" ^ space_ ^ emit_expr b
   | PrintInt expr -> "print_endline (string_of_int " ^ emit_expr expr ^ ")" ^ space_
 
 and emit_decl decl =

@@ -3,6 +3,27 @@ let fib n =
   inner n 0 1
 ;;
 
+let add a = a + 1234
+let sub a = a - 1234
+let div a = a / 1234
+let mul a = a * 1234
+let fadd a = a +. 12.34
+let fsub a = a -. 12.34
+let fdiv a = a /. 12.34
+let fmul a = a *. 12.34
+let eq a = a = 1234
+let neq a = a <> 1234
+let gt a = a > 1234
+let gte a = a >= 1234
+let lt a = a < 1234
+let lte a = a <= 1234
+let eq a = a = 12.34
+let neq a = a <> 12.34
+let gt a = a > 12.34
+let gte a = a >= 12.34
+let lt a = a < 12.34
+let lte a = a <= 12.34
+
 let () =
   let x = fib 5 in
   print_endline (string_of_int x)

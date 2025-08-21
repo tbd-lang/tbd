@@ -5,6 +5,7 @@ exception Lex_error of string
 
 rule token = parse
   | ['0'-'9']+ as n { INT (int_of_string n) }
+  | ['0'-'9']+ '.' ['0'-'9']+ as n { FLOAT (float_of_string n) }
   | "let" { LET }
   | "fun" { FUN }
   | "rec" { REC }
@@ -12,11 +13,17 @@ rule token = parse
   | "else" { ELSE }
   | "print_int" { PRINTINT }
   | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' ]* as id { IDENT id }
-  | '=' { EQ }
   | '+' { PLUS }
   | '-' { MINUS }
   | '*' { STAR }
   | '/' { SLASH }
+  | '=' { EQ }
+  | "+." { PLUS_DOT }
+  | "-." { MINUS_DOT }
+  | "*." { STAR_DOT }
+  | "/." { SLASH_DOT }
+  | '>' { GT }
+  | '<' { LT }
   | '(' { LPAREN }
   | ')' { RPAREN }
   | '{' { LBRACE }

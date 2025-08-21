@@ -2,6 +2,7 @@ type ident = string
 
 type expr =
   | Int of int
+  | Float of float
   | Var of ident
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr
@@ -13,7 +14,16 @@ type expr =
   | Sub of expr * expr
   | Mul of expr * expr
   | Div of expr * expr
+  | FAdd of expr * expr
+  | FSub of expr * expr
+  | FMul of expr * expr
+  | FDiv of expr * expr
   | Equal of expr * expr
+  | NotEqual of expr * expr
+  | Gt of expr * expr
+  | Gte of expr * expr
+  | Lt of expr * expr
+  | Lte of expr * expr
   | PrintInt of expr
 
 type decl =

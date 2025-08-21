@@ -6,7 +6,29 @@ fun fib(n) {
     inner(n, 0, 1)
 }
 
-fun main() { 
+fun add(a) { a + 1234 }
+fun sub(a) { a - 1234 }
+fun div(a) { a / 1234 }
+fun mul(a) { a * 1234 }
+fun fadd(a) { a +. 12.34 }
+fun fsub(a) { a -. 12.34 }
+fun fdiv(a) { a /. 12.34 }
+fun fmul(a) { a *. 12.34 }
+
+fun eq(a) { a = 1234 }
+fun neq(a) { a <> 1234 }
+fun gt(a) { a > 1234 }
+fun gte(a) { a >= 1234 }
+fun lt(a) { a < 1234 }
+fun lte(a) { a <= 1234 }
+fun eq(a) { a = 12.34 }
+fun neq(a) { a <> 12.34 }
+fun gt(a) { a > 12.34 }
+fun gte(a) { a >= 12.34 }
+fun lt(a) { a < 12.34 }
+fun lte(a) { a <= 12.34 }
+
+fun main() {
     let x = fib(5);
     print_int(x)
 }
