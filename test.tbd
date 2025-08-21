@@ -1,9 +1,10 @@
 fun add(a, b) {
-    12
+    add(1, 2);
 }
 
 fun main() {
     let a = 1;
-    let b = 2;
-    ()
+    let b = a; 
+    let c = add(1, 2);
+    add(3, 4);
 }

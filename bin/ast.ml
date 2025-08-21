@@ -5,11 +5,16 @@ type expr =
   | EChar of char
   | EInt of int
   | EFloat of float
-  | EBlock of decl list * expr
+  | EVar of ident
+  | ECall of expr * expr list
+  | EBlock of stmt list * expr
 
-and decl =
-  | DFun of ident * ident list * expr
-  | DLet of ident * expr
+and stmt =
+  | SExpr of expr
+  | SLet of ident * expr
+  | SFun of ident * ident list * expr
+
+and decl = DFun of ident * ident list * expr
 
 type program = decl list
 
@@ -30,29 +35,4 @@ let string_of_string_list l =
     | hd :: tl -> aux tl (", " ^ hd ^ acc)
   in
   aux l "]"
-;;
-
-let rec string_of_expr = function
-  | EUnit -> "EUnit"
-  | EChar c -> "EChar(" ^ String.make 1 c ^ ")"
-  | EInt n -> "EInt(" ^ Int.to_string n ^ ")"
-  | EFloat n -> "EFloat(" ^ Float.to_string n ^ ")"
-  | EBlock (decls, expr) ->
-    Printf.sprintf
-      "Block(%s, %s)"
-      (string_of_string_list (List.map string_of_decl decls))
-      (string_of_expr expr)
-
-and string_of_decl = function
-  | DFun (name, params, expr) ->
-    Printf.sprintf
-      "Fun(%s, %s, %s)"
-      (quote name)
-      (string_of_id_list params)
-      (string_of_expr expr)
-  | DLet (name, expr) -> "ELet(" ^ quote name ^ ", " ^ string_of_expr expr ^ ")"
-;;
-
-let print_program decls =
-  print_endline (string_of_string_list (List.map string_of_decl decls))
 ;;
