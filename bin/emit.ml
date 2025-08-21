@@ -1,62 +1,60 @@
 open Ast
 
-let space = " "
-let suffix = ""
+let space_ = " "
+let let_ = "let "
+let letrec_ = "let rec "
+let in_ = "in "
+let eq_ = "= "
+let if_ = "if "
+let then_ = "then "
+let else_ = "else "
 
 let rec emit_expr expr =
-  let emit_args args =
-    let args = List.rev args in
-    match args with
-    | [] -> " () "
-    | _ -> List.fold_right (fun arg acc -> acc ^ space ^ arg ^ space) args ""
-  in
   match expr with
-  | EUnit -> " () "
-  | EChar c -> String.make 1 c
-  | EInt n -> string_of_int n
-  | EFloat n -> string_of_float n
-  | EVar name -> name ^ suffix
-  | ECall (expr, args) ->
-    (match expr with
-     | EVar name ->
-       name ^ suffix ^ space ^ emit_args (List.map (fun a -> emit_expr a) args)
-     | _ -> failwith "Unsupported call expr")
-  | EBlock (stmts, expr) ->
-    let stmts = List.rev stmts in
-    List.fold_right (fun stmt acc -> acc ^ emit_stmt stmt) stmts "" ^ emit_expr expr
-
-and emit_stmt stmt =
-  match stmt with
-  | SLet (name, expr) -> "let rec " ^ name ^ suffix ^ " = " ^ emit_expr expr ^ " in "
-  | SExpr expr -> emit_expr expr ^ "; "
-  | SFun (name, args, block) ->
-    let emit_args args =
-      let args = List.rev args in
-      match args with
-      | [] -> " () "
-      | _ -> List.fold_right (fun arg acc -> acc ^ arg ^ suffix ^ " ") args ""
-    in
-    "let rec " ^ name ^ suffix ^ space ^ emit_args args ^ " = " ^ emit_expr block ^ "; "
+  | Int n -> string_of_int n ^ space_
+  | Var name -> name ^ space_
+  | Let (name, expr, next) -> let_ ^ name ^ eq_ ^ emit_expr expr ^ in_ ^ emit_expr next
+  | Fun (name, params, expr, next) ->
+    let params = List.rev params in
+    letrec_
+    ^ name
+    ^ space_
+    ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
+    ^ eq_
+    ^ emit_expr expr
+    ^ in_
+    ^ emit_expr next
+  | Call (name, args) ->
+    let args = List.rev args in
+    name ^ space_ ^ List.fold_right (fun arg acc -> acc ^ emit_expr arg) args ""
+  | Parens expr -> "(" ^ emit_expr expr ^ ")" ^ space_
+  | If (cond, ethen, eelse) ->
+    if_ ^ emit_expr cond ^ then_ ^ emit_expr ethen ^ else_ ^ emit_expr eelse
+  | Equal (a, b) -> emit_expr a ^ space_ ^ "=" ^ space_ ^ emit_expr b
+  | Add (a, b) -> emit_expr a ^ space_ ^ "+" ^ space_ ^ emit_expr b
+  | Sub (a, b) -> emit_expr a ^ space_ ^ "-" ^ space_ ^ emit_expr b
+  | Mul (a, b) -> emit_expr a ^ space_ ^ "*" ^ space_ ^ emit_expr b
+  | PrintInt expr -> "print_endline (string_of_int " ^ emit_expr expr ^ ")" ^ space_
 
 and emit_decl decl =
-  let emit_params params =
-    let params = List.rev params in
-    match params with
-    | [] -> " () "
-    | _ -> List.fold_right (fun arg acc -> acc ^ arg ^ suffix ^ space) params ""
-  in
   match decl with
-  | DFun (name, args, block) ->
+  | DFun (name, params, expr) ->
     (match name with
-     | "main" -> "let () = " ^ emit_expr block
+     | "main" -> let_ ^ "()" ^ space_ ^ eq_ ^ emit_expr expr
      | _ ->
-       "let rec " ^ name ^ suffix ^ space ^ emit_params args ^ " = " ^ emit_expr block)
+       let params = List.rev params in
+       letrec_
+       ^ name
+       ^ space_
+       ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
+       ^ eq_
+       ^ emit_expr expr)
 ;;
 
 let emit_program name program =
   let program =
     let program = List.rev program in
-    List.fold_right (fun decl acc -> acc ^ emit_decl decl ^ space) program ""
+    List.fold_right (fun decl acc -> acc ^ emit_decl decl) program ""
   in
   let write_file filename content =
     let oc = open_out filename in

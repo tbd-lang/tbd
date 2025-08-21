@@ -1,12 +1,9 @@
-let rec add a b =
-  add 1 2;
-  ()
+let rec fib n =
+  let rec inner i a b = if i = 0 then a else inner (i - 1) b (a + b) in
+  inner n 0 1
 ;;
 
 let () =
-  let rec a = 1 in
-  let rec b = a in
-  let rec c = add 1 2 in
-  add 3 4;
-  ()
+  let x = fib 5 in
+  print_endline (string_of_int x)
 ;;
