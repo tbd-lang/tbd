@@ -10,7 +10,7 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
 %token PLUS MINUS STAR SLASH EQ NEQ GT GTE LT LTE
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC EXTERN MODULE IF ELSE
+%token LET FUN REC AND EXTERN MODULE IF ELSE
 %token PRINTINT
 %token EOF
 
@@ -31,12 +31,18 @@ program:
 decls:
   | { [] }
   | decl decls { $1 :: $2 }
+;
 
 decl:
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFun($2, $4, $7) }
-  | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFunRec($3, $5, $8) }
+  | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { DFunRec(($3, $5, $8) :: $10) }
   | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
   | MODULE IDENT LBRACE decls RBRACE { DModule($2, $4) }
+;
+
+and_funs:
+  | { [] }
+  | AND FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { ($3, $5, $8) :: $10 }
 ;
 
 expr:
@@ -53,7 +59,7 @@ expr:
   | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }
   | LET LPAREN RPAREN EQ expr SEMI expr { Let("()", $5, $7) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }
-  | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { FunRec($3, $5, $8, $10) }
+  | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs expr { FunRec(($3, $5, $8) :: $10, $11) }
   | expr SEMI expr { Seq($1, $3) }
   | expr LPAREN args RPAREN { Call($1, $3) }
   | IF expr LBRACE expr RBRACE ELSE LBRACE expr RBRACE { If($2, $4, $8) }

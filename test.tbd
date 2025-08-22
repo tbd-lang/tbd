@@ -1,12 +1,6 @@
 fun main() {
-    let a = {
-        fun add(a, b) {
-            a + b
-        }
-        let x = 1;
-        let y = 2;
-        add(x, y)
-    };
-
-    ()
+    fun rec part_one() {
+        print_endline("part one")
+    }
+    part_one()
 }

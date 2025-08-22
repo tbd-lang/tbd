@@ -9,7 +9,7 @@ type expr =
   | Var of ident
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr
-  | FunRec of ident * ident list * expr * expr
+  | FunRec of (ident * ident list * expr) list * expr
   | Call of expr * expr list
   | Seq of expr * expr
   | Parens of expr
@@ -31,7 +31,7 @@ type expr =
 
 type decl =
   | DFun of ident * ident list * expr
-  | DFunRec of ident * ident list * expr
+  | DFunRec of (ident * ident list * expr) list
   | DExtern of ident * ident list * string
   | DModule of ident * decl list
 

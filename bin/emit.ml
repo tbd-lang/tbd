@@ -23,13 +23,30 @@ let rec emit_expr expr =
     ^ emit_expr body
     ^ " in "
     ^ emit_expr next
-  | FunRec (name, params, body, next) ->
-    "let rec "
-    ^ name
-    ^ " "
-    ^ String.concat " " params
-    ^ " = "
-    ^ emit_expr body
+  | FunRec (funs, next) ->
+    (match funs with
+     | [] -> ""
+     | (name, params, body) :: rest_funs ->
+       let first =
+         let params =
+           match params with
+           | [] -> [ "()" ]
+           | _ -> params
+         in
+         "let rec " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body
+       in
+       let rest =
+         List.map
+           (fun (name, params, body) ->
+              let params =
+                match params with
+                | [] -> [ "()" ]
+                | _ -> params
+              in
+              "and " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
+           rest_funs
+       in
+       String.concat "\n" (first :: rest))
     ^ " in "
     ^ emit_expr next
   | Call (expr, args) ->
@@ -74,16 +91,30 @@ and emit_decl decl =
         | _ -> params
       in
       "let " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
-  | DFunRec (name, params, body) ->
-    if name = "main"
-    then "let () = " ^ emit_expr body
-    else (
-      let params =
-        match params with
-        | [] -> [ "()" ]
-        | _ -> params
-      in
-      "let rec " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
+  | DFunRec funs ->
+    (match funs with
+     | [] -> ""
+     | (name, params, body) :: rest_funs ->
+       let first =
+         let params =
+           match params with
+           | [] -> [ "()" ]
+           | _ -> params
+         in
+         "let rec " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body
+       in
+       let rest =
+         List.map
+           (fun (name, params, body) ->
+              let params =
+                match params with
+                | [] -> [ "()" ]
+                | _ -> params
+              in
+              "and " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
+           rest_funs
+       in
+       String.concat "\n" (first :: rest))
   | DExtern (name, params, code) ->
     "let " ^ name ^ " " ^ String.concat " " params ^ " = " ^ code
   | DModule (name, decls) ->

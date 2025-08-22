@@ -23,6 +23,7 @@ rule token = parse
   | "let" { LET }
   | "fun" { FUN }
   | "rec" { REC }
+  | "and" { AND }
   | "extern" { EXTERN }
   | "module" { MODULE }
   | "if" { IF }
