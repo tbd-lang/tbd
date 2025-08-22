@@ -1,10 +1,6 @@
-extern print_int(x) = "print_endline (string_of_int x)"
+fun add(a, b) { () }
 
-
-fun add(a, b) { a + b }
-fun get_add() { add }
 
 fun main() {
-    let x = (get_add())(1, 2);
-    print_int(x)
+    add(1 + 2, 3 + 4)
 }
