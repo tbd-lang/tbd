@@ -50,6 +50,7 @@ expr:
   | STRING { String($1) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
+  | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }
   | LET LPAREN RPAREN EQ expr SEMI expr { Let("()", $5, $7) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { FunRec($3, $5, $8, $10) }
