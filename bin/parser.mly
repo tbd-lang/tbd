@@ -10,7 +10,7 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
 %token PLUS MINUS STAR SLASH EQ GT LT
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC EXTERN IF ELSE
+%token LET FUN REC EXTERN MODULE IF ELSE
 %token PRINTINT
 %token EOF
 
@@ -32,6 +32,7 @@ decl:
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFun($2, $4, $7) }
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFunRec($3, $5, $8) }
   | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
+  | MODULE IDENT LBRACE decls RBRACE { DModule($2, $4) }
 ;
 
 expr:
@@ -45,6 +46,7 @@ expr:
   | STRING { String($1) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
+  | LET LPAREN RPAREN EQ expr SEMI expr { Let("()", $5, $7) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { FunRec($3, $5, $8, $10) }
   | IDENT LPAREN args RPAREN { Call($1, $3) }
@@ -63,7 +65,6 @@ expr:
   | expr GT EQ expr { Gte($1, $4) }
   | expr LT expr { Lt($1, $3) }
   | expr LT EQ expr { Lte($1, $4) }
-  | PRINTINT LPAREN expr RPAREN { PrintInt($3) }
 ;
 
 args:

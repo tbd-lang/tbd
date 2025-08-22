@@ -27,11 +27,11 @@ type expr =
   | Gte of expr * expr
   | Lt of expr * expr
   | Lte of expr * expr
-  | PrintInt of expr
 
 type decl =
   | DFun of ident * ident list * expr
   | DFunRec of ident * ident list * expr
   | DExtern of ident * ident list * string
+  | DModule of ident * decl list
 
 type program = decl list

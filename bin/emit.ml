@@ -3,6 +3,9 @@ open Ast
 let space_ = " "
 let let_ = "let "
 let letrec_ = "let rec "
+let module_ = "module "
+let struct_ = "struct "
+let end_ = "end "
 let in_ = "in "
 let eq_ = "= "
 let if_ = "if "
@@ -58,7 +61,6 @@ let rec emit_expr expr =
   | Gte (a, b) -> emit_expr a ^ space_ ^ ">=" ^ space_ ^ emit_expr b
   | Lt (a, b) -> emit_expr a ^ space_ ^ "<" ^ space_ ^ emit_expr b
   | Lte (a, b) -> emit_expr a ^ space_ ^ "<=" ^ space_ ^ emit_expr b
-  | PrintInt expr -> "print_endline (string_of_int " ^ emit_expr expr ^ ")" ^ space_
 
 and emit_decl decl =
   match decl with
@@ -92,6 +94,14 @@ and emit_decl decl =
     ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
     ^ eq_
     ^ ocaml_code
+  | DModule (name, decls) ->
+    module_
+    ^ name
+    ^ space_
+    ^ eq_
+    ^ struct_
+    ^ List.fold_right (fun decl acc -> acc ^ emit_decl decl ^ space_) decls ""
+    ^ end_
 ;;
 
 let emit_program name program =

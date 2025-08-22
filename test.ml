@@ -1,4 +1,19 @@
-let myprintint x = print_endline (string_of_int x)
+let print_int x = print_endline (string_of_int x)
+
+module List = struct
+  let rec fold f acc l =
+    let x = 1 in
+    fold 1 2 3
+  ;;
+
+  let reverse l =
+    let rec inner l acc =
+      let b = 1 in
+      ()
+    in
+    inner l 1
+  ;;
+end
 
 let fib n =
   let rec inner i a b = if i = 0 then a else inner (i - 1) b (a + b) in
@@ -38,6 +53,8 @@ let () =
   let c = 3 - 2 in
   let y = 0. -. 12.34 in
   let a = () in
+  let () = print_int 12 in
   let x = fib 5 in
+  let c = List.reverse "hello" in
   print_int x
 ;;

@@ -1,6 +1,19 @@
-extern myprintint(x) = "print_endline (string_of_int x)"
+extern print_int(x) = "print_endline (string_of_int x)"
 
+module List {
+    fun reverse(l) {
+        fun rec inner(l, acc) {
+            let b = 1;
+            ()
+        }
+        inner(l, 1)
+    }
 
+    fun rec fold(f, acc, l) {
+        let x = 1;
+        fold(1, 2, 3)
+    }
+}
 
 fun fib(n) {
     fun rec inner(i, a, b) {
@@ -44,6 +57,8 @@ fun main() {
     let c = 3 - 2;
     let y = -12.34;
     let a = ();
+    let () = print_int(12);
     let x = fib(5);
+    let c = List.reverse("hello");
     print_int(x)
-}
+}   

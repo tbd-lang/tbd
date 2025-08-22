@@ -24,10 +24,11 @@ rule token = parse
   | "fun" { FUN }
   | "rec" { REC }
   | "extern" { EXTERN }
+  | "module" { MODULE }
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }
-  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' ]* as id { IDENT id }
+  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
   | '+' { PLUS }
   | '-' { MINUS }
   | '*' { STAR }
