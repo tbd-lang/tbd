@@ -43,7 +43,12 @@ let rec emit_expr expr =
     ^ emit_expr next
   | Call (name, args) ->
     let args = List.rev args in
-    name ^ space_ ^ List.fold_right (fun arg acc -> acc ^ emit_expr arg) args ""
+    "("
+    ^ name
+    ^ space_
+    ^ List.fold_right (fun arg acc -> acc ^ emit_expr arg) args ""
+    ^ ")"
+    ^ space_
   | Parens expr -> "(" ^ emit_expr expr ^ ")" ^ space_
   | If (cond, ethen, eelse) ->
     if_ ^ emit_expr cond ^ then_ ^ emit_expr ethen ^ else_ ^ emit_expr eelse
@@ -104,21 +109,7 @@ and emit_decl decl =
     ^ end_
 ;;
 
-let emit_program name program =
-  let program =
-    let program = List.rev program in
-    List.fold_right (fun decl acc -> acc ^ emit_decl decl) program ""
-  in
-  let write_file filename content =
-    let oc = open_out filename in
-    try
-      output_string oc content;
-      flush oc;
-      close_out oc
-    with
-    | e ->
-      close_out_noerr oc;
-      raise e
-  in
-  write_file name program
+let emit_program program =
+  let program = List.rev program in
+  List.fold_right (fun decl acc -> acc ^ emit_decl decl) program ""
 ;;

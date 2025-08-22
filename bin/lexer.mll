@@ -33,13 +33,16 @@ rule token = parse
   | '-' { MINUS }
   | '*' { STAR }
   | '/' { SLASH }
-  | '=' { EQ }
   | "+." { PLUS_DOT }
   | "-." { MINUS_DOT }
   | "*." { STAR_DOT }
   | "/." { SLASH_DOT }
+  | '=' { EQ }
+  | "<>" { NEQ }
   | '>' { GT }
+  | ">=" { GTE }
   | '<' { LT }
+  | "<=" { LTE }
   | '(' { LPAREN }
   | ')' { RPAREN }
   | '{' { LBRACE }

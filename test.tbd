@@ -46,19 +46,5 @@ fun lt(a) { a < 12.34 }
 fun lte(a) { a <= 12.34 }
 
 fun main() {
-    let c = 'c';
-    let b = 'x';
-    let x = 'a';
-    let b = ' ';
-    let c = '\n';
-    let str = "This is my kitchen\n";
-    let b = print_int(34);
-    let x = -1;
-    let c = 3 - 2;
-    let y = -12.34;
-    let a = ();
-    let () = print_int(12);
-    let x = fib(5);
-    let c = List.reverse("hello");
-    print_int(x)
+    print_int(fib(15))
 }   

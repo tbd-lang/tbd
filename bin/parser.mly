@@ -8,14 +8,18 @@ open Ast
 %token <string> STRING
 %token <string> IDENT 
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
-%token PLUS MINUS STAR SLASH EQ GT LT
+%token PLUS MINUS STAR SLASH EQ NEQ GT GTE LT LTE
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC EXTERN MODULE IF ELSE
 %token PRINTINT
 %token EOF
 
-%left PLUS MINUS STAR SLASH
-%left PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT
+%left EQ NEQ GT GTE LT LTE
+%left EQ_DOT
+%left PLUS MINUS
+%left STAR SLASH
+%left PLUS_DOT MINUS_DOT
+%left STAR_DOT SLASH_DOT
 
 %start <program> program
 %%
@@ -60,11 +64,11 @@ expr:
   | expr STAR_DOT expr { FMul($1, $3) }
   | expr SLASH_DOT expr { FDiv($1, $3) }
   | expr EQ expr { Equal($1, $3) }
-  | expr LT GT expr { NotEqual($1, $4) }
+  | expr NEQ expr { NotEqual($1, $3) }
   | expr GT expr { Gt($1, $3) }
-  | expr GT EQ expr { Gte($1, $4) }
+  | expr GTE expr { Gte($1, $3) }
   | expr LT expr { Lt($1, $3) }
-  | expr LT EQ expr { Lte($1, $4) }
+  | expr LTE expr { Lte($1, $3) }
 ;
 
 args:
