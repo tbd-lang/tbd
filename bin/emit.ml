@@ -27,8 +27,8 @@ let rec emit_expr expr =
     ^ emit_expr body
     ^ " in "
     ^ emit_expr next
-  | Call (name, args) ->
-    "(" ^ name ^ " " ^ String.concat " " (List.map emit_expr args) ^ ")"
+  | Call (expr, args) ->
+    "(" ^ emit_expr expr ^ " " ^ String.concat " " (List.map emit_expr args) ^ ")"
   | Parens e -> "(" ^ emit_expr e ^ ")"
   | If (cond, e1, e2) ->
     "if " ^ emit_expr cond ^ " then " ^ emit_expr e1 ^ " else " ^ emit_expr e2

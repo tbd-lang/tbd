@@ -10,7 +10,7 @@ type expr =
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr
   | FunRec of ident * ident list * expr * expr
-  | Call of ident * expr list
+  | Call of expr * expr list
   | Parens of expr
   | If of expr * expr * expr
   | Add of expr * expr

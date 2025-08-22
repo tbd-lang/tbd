@@ -53,7 +53,7 @@ expr:
   | LET LPAREN RPAREN EQ expr SEMI expr { Let("()", $5, $7) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { FunRec($3, $5, $8, $10) }
-  | IDENT LPAREN args RPAREN { Call($1, $3) }
+  | expr LPAREN args RPAREN { Call($1, $3) }
   | IF expr LBRACE expr RBRACE ELSE LBRACE expr RBRACE { If($2, $4, $8) }
   | expr PLUS expr { Add($1, $3) }
   | expr MINUS expr { Sub($1, $3) }

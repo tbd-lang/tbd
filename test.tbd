@@ -1,50 +1,10 @@
 extern print_int(x) = "print_endline (string_of_int x)"
 
-module List {
-    fun reverse(l) {
-        fun rec inner(l, acc) {
-            let b = 1;
-            ()
-        }
-        inner(l, 1)
-    }
 
-    fun rec fold(f, acc, l) {
-        let x = 1;
-        fold(1, 2, 3)
-    }
-}
-
-fun fib(n) {
-    fun rec inner(i, a, b) {
-        if i = 0 { a }
-        else { inner((i - 1), b, (a + b)) }
-    }
-    inner(n, 0, 1)
-}
-
-fun add(a) { a + 1234 }
-fun sub(a) { a - 1234 }
-fun div(a) { a / 1234 }
-fun mul(a) { a * 1234 }
-fun fadd(a) { a +. 12.34 }
-fun fsub(a) { a -. 12.34 }
-fun fdiv(a) { a /. 12.34 }
-fun fmul(a) { a *. 12.34 }
-
-fun eq(a) { a = 1234 }
-fun neq(a) { a <> 1234 }
-fun gt(a) { a > 1234 }
-fun gte(a) { a >= 1234 }
-fun lt(a) { a < 1234 }
-fun lte(a) { a <= 1234 }
-fun eq(a) { a = 12.34 }
-fun neq(a) { a <> 12.34 }
-fun gt(a) { a > 12.34 }
-fun gte(a) { a >= 12.34 }
-fun lt(a) { a < 12.34 }
-fun lte(a) { a <= 12.34 }
+fun add(a, b) { a + b }
+fun get_add() { add }
 
 fun main() {
-    print_int(fib(15))
-}   
+    let x = (get_add())(1, 2);
+    print_int(x)
+}
