@@ -23,6 +23,7 @@ rule token = parse
   | "let" { LET }
   | "fun" { FUN }
   | "rec" { REC }
+  | "extern" { EXTERN }
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }

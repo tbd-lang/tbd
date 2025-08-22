@@ -1,3 +1,7 @@
+extern myprintint(x) = "print_endline (string_of_int x)"
+
+
+
 fun fib(n) {
     fun rec inner(i, a, b) {
         if i = 0 { a }

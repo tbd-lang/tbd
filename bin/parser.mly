@@ -10,7 +10,7 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
 %token PLUS MINUS STAR SLASH EQ GT LT
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC IF ELSE
+%token LET FUN REC EXTERN IF ELSE
 %token PRINTINT
 %token EOF
 
@@ -30,6 +30,8 @@ decls:
 
 decl:
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFun($2, $4, $7) }
+  | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE { DFunRec($3, $5, $8) }
+  | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
 ;
 
 expr:

@@ -32,5 +32,6 @@ type expr =
 type decl =
   | DFun of ident * ident list * expr
   | DFunRec of ident * ident list * expr
+  | DExtern of ident * ident list * string
 
 type program = decl list

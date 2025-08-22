@@ -84,6 +84,14 @@ and emit_decl decl =
        ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
        ^ eq_
        ^ emit_expr expr)
+  | DExtern (name, params, ocaml_code) ->
+    let params = List.rev params in
+    let_
+    ^ name
+    ^ space_
+    ^ List.fold_right (fun param acc -> acc ^ param ^ space_) params ""
+    ^ eq_
+    ^ ocaml_code
 ;;
 
 let emit_program name program =
