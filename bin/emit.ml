@@ -10,6 +10,11 @@ let rec emit_expr expr =
   | Var name -> name
   | Let (name, e1, e2) -> "let " ^ name ^ " = " ^ emit_expr e1 ^ " in " ^ emit_expr e2
   | Fun (name, params, body, next) ->
+    let params =
+      match params with
+      | [] -> [ "()" ]
+      | _ -> params
+    in
     "let "
     ^ name
     ^ " "
@@ -28,6 +33,11 @@ let rec emit_expr expr =
     ^ " in "
     ^ emit_expr next
   | Call (expr, args) ->
+    let args =
+      match args with
+      | [] -> [ Unit ]
+      | _ -> args
+    in
     "("
     ^ emit_expr expr
     ^ " "
@@ -56,11 +66,23 @@ and emit_decl decl =
   | DFun (name, params, body) ->
     if name = "main"
     then "let () = " ^ emit_expr body
-    else "let " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body
+    else (
+      let params =
+        match params with
+        | [] -> [ "()" ]
+        | _ -> params
+      in
+      "let " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
   | DFunRec (name, params, body) ->
     if name = "main"
     then "let () = " ^ emit_expr body
-    else "let rec " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body
+    else (
+      let params =
+        match params with
+        | [] -> [ "()" ]
+        | _ -> params
+      in
+      "let rec " ^ name ^ " " ^ String.concat " " params ^ " = " ^ emit_expr body)
   | DExtern (name, params, code) ->
     "let " ^ name ^ " " ^ String.concat " " params ^ " = " ^ code
   | DModule (name, decls) ->

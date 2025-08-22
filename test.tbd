@@ -1,6 +1,8 @@
-fun add(a, b) { () }
+fun rec loop() {
+    loop()
+}
 
 
 fun main() {
-    add(1 + 2, 3 + 4)
+    loop()
 }
