@@ -11,6 +11,8 @@ let else_ = "else "
 
 let rec emit_expr expr =
   match expr with
+  | Unit -> "()" ^ space_
+  | Char c -> "'" ^ String.make 1 c ^ "'" ^ space_
   | Int n -> string_of_int n ^ space_
   | Float n -> string_of_float n ^ space_
   | Var name -> name ^ space_

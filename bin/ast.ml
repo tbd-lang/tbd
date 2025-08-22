@@ -1,6 +1,8 @@
 type ident = string
 
 type expr =
+  | Unit
+  | Char of char
   | Int of int
   | Float of float
   | Var of ident

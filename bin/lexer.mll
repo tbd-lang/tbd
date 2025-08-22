@@ -4,6 +4,19 @@ exception Lex_error of string
 }
 
 rule token = parse
+  | '\'' (_ as c) '\'' { CHAR c }
+  | '\'' ('\\' ['n' 't' 'r' '\\' '\'']) '\'' as c {
+    let c =
+      match c with
+      | "'\\n'" -> '\n'
+      | "'\\t'" -> '\t'
+      | "'\\r'" -> '\r'
+      | "'\\''" -> '\''
+      | "'\\\\'" -> '\\'
+      | _ -> failwith ("Unknown escape: " ^ c)
+    in
+    CHAR c
+  }
   | ['0'-'9']+ as n { INT (int_of_string n) }
   | ['0'-'9']+ '.' ['0'-'9']+ as n { FLOAT (float_of_string n) }
   | "let" { LET }

@@ -2,6 +2,7 @@
 open Ast
 %}
 
+%token <char> CHAR
 %token <int> INT
 %token <float> FLOAT
 %token <string> IDENT 
@@ -31,10 +32,13 @@ decl:
 ;
 
 expr:
-  | PRINTINT LPAREN expr RPAREN { PrintInt($3) }
   | LPAREN expr RPAREN { Parens($2) }
+  | LPAREN RPAREN { Unit }
+  | CHAR { Char($1) }
   | INT { Int($1) }
+  | MINUS INT { Parens(Sub(Int(0), Int($2))) }
   | FLOAT { Float($1) }
+  | MINUS FLOAT { Parens(FSub(Float(0.0), Float($2))) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }
@@ -55,6 +59,7 @@ expr:
   | expr GT EQ expr { Gte($1, $4) }
   | expr LT expr { Lt($1, $3) }
   | expr LT EQ expr { Lte($1, $4) }
+  | PRINTINT LPAREN expr RPAREN { PrintInt($3) }
 ;
 
 args:

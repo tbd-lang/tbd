@@ -29,6 +29,16 @@ fun lt(a) { a < 12.34 }
 fun lte(a) { a <= 12.34 }
 
 fun main() {
+    let c = 'c';
+    let b = 'x';
+    let x = 'a';
+    let b = ' ';
+    let c = '\n';
+    let b = print_int(34);
+    let x = -1;
+    let c = 3 - 2;
+    let y = -12.34;
+    let a = ();
     let x = fib(5);
     print_int(x)
 }
