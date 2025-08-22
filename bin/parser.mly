@@ -5,6 +5,7 @@ open Ast
 %token <char> CHAR
 %token <int> INT
 %token <float> FLOAT
+%token <string> STRING
 %token <string> IDENT 
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
 %token PLUS MINUS STAR SLASH EQ GT LT
@@ -39,6 +40,7 @@ expr:
   | MINUS INT { Parens(Sub(Int(0), Int($2))) }
   | FLOAT { Float($1) }
   | MINUS FLOAT { Parens(FSub(Float(0.0), Float($2))) }
+  | STRING { String($1) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE expr { Fun($2, $4, $7, $9) }

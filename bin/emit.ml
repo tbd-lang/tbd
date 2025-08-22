@@ -15,6 +15,7 @@ let rec emit_expr expr =
   | Char c -> "'" ^ String.make 1 c ^ "'" ^ space_
   | Int n -> string_of_int n ^ space_
   | Float n -> string_of_float n ^ space_
+  | String s -> "\"" ^ s ^ "\"" ^ space_
   | Var name -> name ^ space_
   | Let (name, expr, next) -> let_ ^ name ^ eq_ ^ emit_expr expr ^ in_ ^ emit_expr next
   | Fun (name, params, expr, next) ->

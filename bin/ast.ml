@@ -5,6 +5,7 @@ type expr =
   | Char of char
   | Int of int
   | Float of float
+  | String of string
   | Var of ident
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr

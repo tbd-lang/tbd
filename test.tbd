@@ -34,6 +34,7 @@ fun main() {
     let x = 'a';
     let b = ' ';
     let c = '\n';
+    let str = "This is my kitchen\n";
     let b = print_int(34);
     let x = -1;
     let c = 3 - 2;

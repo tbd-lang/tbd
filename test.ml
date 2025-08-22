@@ -30,11 +30,12 @@ let () =
   let x = 'a' in
   let b = ' ' in
   let c = '\n' in
-  let b = print_endline (string_of_int 34) in
+  let str = "This is my kitchen\n" in
+  let b = print_int 34 in
   let x = 0 - 1 in
   let c = 3 - 2 in
   let y = 0. -. 12.34 in
   let a = () in
   let x = fib 5 in
-  print_endline (string_of_int x)
+  print_int x
 ;;
