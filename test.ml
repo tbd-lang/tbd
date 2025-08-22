@@ -1,2 +1,1 @@
-let rec loop () = loop ()
-let () = loop ()
+let () = (print_endline ("a")); (print_endline ("b"))

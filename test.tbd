@@ -1,8 +1,4 @@
-fun rec loop() {
-    loop()
-}
-
-
 fun main() {
-    loop()
+    print_endline("a");
+    print_endline("b")
 }

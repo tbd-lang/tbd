@@ -43,6 +43,7 @@ let rec emit_expr expr =
     ^ " "
     ^ String.concat " " (List.map (fun arg -> "(" ^ emit_expr arg ^ ")") args)
     ^ ")"
+  | Seq (e1, e2) -> emit_expr e1 ^ "; " ^ emit_expr e2
   | Parens e -> "(" ^ emit_expr e ^ ")"
   | If (cond, e1, e2) ->
     "if " ^ emit_expr cond ^ " then " ^ emit_expr e1 ^ " else " ^ emit_expr e2
