@@ -25,6 +25,7 @@ type expr =
   | FSub of expr * expr
   | FMul of expr * expr
   | FDiv of expr * expr
+  | Concat of expr * expr
   | Equal of expr * expr
   | NotEqual of expr * expr
   | Gt of expr * expr

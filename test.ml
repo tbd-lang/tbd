@@ -1,11 +1,8 @@
-let f a b c = a, b, c
+let test s s = s
 
 let () =
-  let a = [| 12; "hi" |] in
-  let e = [ 1; 2; 3 ] in
-  let p = f 42 in
-  let eee = [] in
-  let x = 1 + 2 in
-  let t = f, 1 + 6, 3 in
-  ()
+  let hello = "Hello " in
+  let world = "World!" in
+  let t = test (hello ^ world) (hello ^ world) in
+  print_endline t
 ;;

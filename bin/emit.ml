@@ -96,6 +96,7 @@ let rec emit_expr expr =
   | FSub (a, b) -> emit_expr a ^ " -. " ^ emit_expr b
   | FMul (a, b) -> emit_expr a ^ " *. " ^ emit_expr b
   | FDiv (a, b) -> emit_expr a ^ " /. " ^ emit_expr b
+  | Concat (a, b) -> emit_expr a ^ " ^ " ^ emit_expr b
   | Equal (a, b) -> emit_expr a ^ " = " ^ emit_expr b
   | NotEqual (a, b) -> emit_expr a ^ " <> " ^ emit_expr b
   | Gt (a, b) -> emit_expr a ^ " > " ^ emit_expr b

@@ -38,6 +38,7 @@ rule token = parse
   | "-." { MINUS_DOT }
   | "*." { STAR_DOT }
   | "/." { SLASH_DOT }
+  | '^' { CARET }
   | '=' { EQ }
   | "<>" { NEQ }
   | '>' { GT }

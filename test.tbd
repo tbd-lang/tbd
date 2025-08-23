@@ -1,11 +1,8 @@
-fun f(a, b, c) { (a, b, c) }
+fun test(s, s) { s }
 
 fun main() {
-    let a = {12, "hi"};
-    let e = [1, 2, 3];
-    let p = f(42);
-    let eee = [];
-    let x = (1 + 2) ;
-    let t = (f, 1 + 6, 3);
-    ()
+    let hello = "Hello ";
+    let world = "World!";
+    let t = test(hello ^ world, hello ^ world);
+    print_endline(t)
 }
