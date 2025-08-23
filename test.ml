@@ -1,6 +1,7 @@
-let f x = [ x ]
+let f a b c = a, b, c
 
 let () =
+  let a = [| 12; "hi" |] in
   let e = [ 1; 2; 3 ] in
   let p = f 42 in
   let eee = [] in

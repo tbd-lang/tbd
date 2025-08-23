@@ -51,6 +51,7 @@ expr:
   | STRING { String($1) }
   | LPAREN args RPAREN { Tuple($2) }
   | LBRACKET args RBRACKET { List($2) }
+  | LBRACE args RBRACE { Array($2) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }

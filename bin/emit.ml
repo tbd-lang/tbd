@@ -23,8 +23,16 @@ let rec emit_expr expr =
       | hd :: tl -> collect tl (acc ^ emit_expr hd ^ "; ")
     in
     collect items "["
+  | Array items ->
+    let rec collect items acc =
+      match items with
+      | [] -> acc ^ "|]"
+      | [ x ] -> collect [] (acc ^ emit_expr x)
+      | hd :: tl -> collect tl (acc ^ emit_expr hd ^ "; ")
+    in
+    collect items "[|"
   | Var name -> name
-  | Let (name, e1, e2) -> "let " ^ name ^ " = " ^ emit_expr e1 ^ " in " ^ emit_expr e2
+  | Let (name, e1, e2) -> "let " ^ name ^ " = " ^ emit_expr e1 ^ " in\n" ^ emit_expr e2
   | Fun (name, params, body, next) ->
     let params =
       match params with
@@ -37,7 +45,7 @@ let rec emit_expr expr =
     ^ String.concat " " params
     ^ " = "
     ^ emit_expr body
-    ^ " in "
+    ^ " in\n"
     ^ emit_expr next
   | FunRec (funs, next) ->
     (match funs with
@@ -63,7 +71,7 @@ let rec emit_expr expr =
            rest_funs
        in
        String.concat "\n" (first :: rest))
-    ^ " in "
+    ^ " in\n"
     ^ emit_expr next
   | Call (expr, args) ->
     let args =
