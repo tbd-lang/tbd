@@ -95,6 +95,7 @@ typ:
   | TINT { TInt }
   | TFLOAT { TFloat }
   | TSTRING { TString }
+  | IDENT { TVar($1) }
 
 and_funs:
   | { [] }

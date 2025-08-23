@@ -48,7 +48,6 @@ type c = char
 type i = int
 type f = float
 type s = string
-type x = Custom
+type t = another
 
-let f (x : x) = ()
 let () = ()

@@ -5,11 +5,15 @@ alias I = Int
 alias F = Float
 alias S = String
 
-type Nothing = Nothing
-type Either a b = This a | That b
-type Coordinate =
-    | Point (Int, Int)
-    | Vector (Float, Float, Float)
+
+
+alias T = Another
+
+# type Nothing = Nothing
+# type Either a b = This a | That b
+# type Coordinate =
+#     | Point (Int, Int)
+#     | Vector (Float, Float, Float)
  
 
 fun main() {()}

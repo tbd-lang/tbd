@@ -44,6 +44,7 @@ type typ =
   | TInt
   | TFloat
   | TString
+  | TVar of ident
 
 type decl =
   | DFun of ident * ident list * expr

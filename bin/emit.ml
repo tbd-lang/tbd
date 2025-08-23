@@ -122,6 +122,7 @@ and emit_typ typ =
   | TInt -> "int"
   | TFloat -> "float"
   | TString -> "string"
+  | TVar name -> String.lowercase_ascii name
 
 and emit_decl decl =
   match decl with
