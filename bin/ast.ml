@@ -7,6 +7,7 @@ type expr =
   | Float of float
   | String of string
   | Tuple of expr list
+  | List of expr list
   | Var of ident
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr

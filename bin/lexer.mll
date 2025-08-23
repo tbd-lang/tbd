@@ -48,6 +48,8 @@ rule token = parse
   | ')' { RPAREN }
   | '{' { LBRACE }
   | '}' { RBRACE }
+  | '[' { LBRACKET}
+  | ']' { RBRACKET}
   | ';' { SEMI }
   | ',' { COMMA }
   | "print_int" { PRINTINT }

@@ -7,7 +7,7 @@ open Ast
 %token <float> FLOAT
 %token <string> STRING
 %token <string> IDENT 
-%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE
+%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET
 %token PLUS MINUS STAR SLASH EQ NEQ GT GTE LT LTE
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC AND EXTERN MODULE IF ELSE
@@ -50,6 +50,7 @@ expr:
   | MINUS FLOAT { Parens(FSub(Float(0.0), Float($2))) }
   | STRING { String($1) }
   | LPAREN args RPAREN { Tuple($2) }
+  | LBRACKET args RBRACKET { List($2) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }
@@ -78,6 +79,12 @@ expr:
 and_funs:
   | { [] }
   | AND FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { ($3, $5, $8) :: $10 }
+;
+
+tuple_items:
+  | { [] }
+  | expr { [$1] }
+  | expr COMMA tuple_items { $1 :: $3 }
 ;
 
 args:

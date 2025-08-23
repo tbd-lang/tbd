@@ -1,6 +1,10 @@
-fun f(x) { x }
+fun f(x) { [x] }
 
 fun main() {
+    let e = [1, 2, 3];
+    let p = f(42);
+    let eee = [];
+    let x = (1 + 2) ;
     let t = (f, 1 + 6, 3);
     ()
 }
