@@ -1,4 +1,3 @@
-let () =
-  let rec part_one () = print_endline "part one" in
-  part_one ()
-;;
+let f x = x
+
+let () = let t = (f, 1 + 6, 3) in ()

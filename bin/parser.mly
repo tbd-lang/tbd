@@ -40,11 +40,6 @@ decl:
   | MODULE IDENT LBRACE decls RBRACE { DModule($2, $4) }
 ;
 
-and_funs:
-  | { [] }
-  | AND FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { ($3, $5, $8) :: $10 }
-;
-
 expr:
   | LPAREN expr RPAREN { Parens($2) }
   | LPAREN RPAREN { Unit }
@@ -54,6 +49,7 @@ expr:
   | FLOAT { Float($1) }
   | MINUS FLOAT { Parens(FSub(Float(0.0), Float($2))) }
   | STRING { String($1) }
+  | LPAREN args RPAREN { Tuple($2) }
   | IDENT { Var($1) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }
@@ -77,6 +73,11 @@ expr:
   | expr GTE expr { Gte($1, $3) }
   | expr LT expr { Lt($1, $3) }
   | expr LTE expr { Lte($1, $3) }
+;
+
+and_funs:
+  | { [] }
+  | AND FUN IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { ($3, $5, $8) :: $10 }
 ;
 
 args:

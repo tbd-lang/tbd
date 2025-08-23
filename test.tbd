@@ -1,6 +1,6 @@
+fun f(x) { x }
+
 fun main() {
-    fun rec part_one() {
-        print_endline("part one")
-    }
-    part_one()
+    let t = (f, 1 + 6, 3);
+    ()
 }
