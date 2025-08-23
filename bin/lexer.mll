@@ -5,6 +5,7 @@ exception Lex_error of string
 
 rule token = parse
   | [' ' '\t' '\r' '\n'] { token lexbuf }
+  | '#' [^ '\n']* '\n' { token lexbuf }
   | '\'' (_ as c) '\'' { CHAR c }
   | '\'' ('\\' ['n' 't' 'r' '\\' '\'']) '\'' as c {
     let c =
@@ -39,12 +40,15 @@ rule token = parse
   | "*." { STAR_DOT }
   | "/." { SLASH_DOT }
   | '^' { CARET }
+  | "::" { CONS }
   | '=' { EQ }
   | "<>" { NEQ }
   | '>' { GT }
   | ">=" { GTE }
   | '<' { LT }
   | "<=" { LTE }
+  | "&&" { BAND }
+  | "||" { BOR }
   | '(' { LPAREN }
   | ')' { RPAREN }
   | '{' { LBRACE }
@@ -53,6 +57,7 @@ rule token = parse
   | ']' { RBRACKET}
   | ';' { SEMI }
   | ',' { COMMA }
+
   | "print_int" { PRINTINT }
   | eof { EOF }
   | _ as c { raise (Lex_error (Printf.sprintf "Unexpected char: %c" c)) }

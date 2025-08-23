@@ -26,12 +26,15 @@ type expr =
   | FMul of expr * expr
   | FDiv of expr * expr
   | Concat of expr * expr
+  | Cons of expr * expr
   | Equal of expr * expr
   | NotEqual of expr * expr
   | Gt of expr * expr
   | Gte of expr * expr
   | Lt of expr * expr
   | Lte of expr * expr
+  | And of expr * expr
+  | Or of expr * expr
 
 type decl =
   | DFun of ident * ident list * expr

@@ -97,12 +97,15 @@ let rec emit_expr expr =
   | FMul (a, b) -> emit_expr a ^ " *. " ^ emit_expr b
   | FDiv (a, b) -> emit_expr a ^ " /. " ^ emit_expr b
   | Concat (a, b) -> emit_expr a ^ " ^ " ^ emit_expr b
+  | Cons (a, b) -> emit_expr a ^ " :: " ^ emit_expr b
   | Equal (a, b) -> emit_expr a ^ " = " ^ emit_expr b
   | NotEqual (a, b) -> emit_expr a ^ " <> " ^ emit_expr b
   | Gt (a, b) -> emit_expr a ^ " > " ^ emit_expr b
   | Gte (a, b) -> emit_expr a ^ " >= " ^ emit_expr b
   | Lt (a, b) -> emit_expr a ^ " < " ^ emit_expr b
   | Lte (a, b) -> emit_expr a ^ " <= " ^ emit_expr b
+  | And (a, b) -> emit_expr a ^ " && " ^ emit_expr b
+  | Or (a, b) -> emit_expr a ^ " || " ^ emit_expr b
 
 and emit_decl decl =
   match decl with

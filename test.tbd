@@ -1,8 +1,7 @@
-fun test(s, s) { s }
-
 fun main() {
-    let hello = "Hello ";
-    let world = "World!";
-    let t = test(hello ^ world, hello ^ world);
-    print_endline(t)
+    let x = {1,2, 3+4};
+    let l = [];
+    let b = 0 = 1 || false && true;
+    let l = 'x' :: l;
+    ()
 }

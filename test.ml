@@ -1,8 +1,7 @@
-let test s s = s
-
 let () =
-  let hello = "Hello " in
-  let world = "World!" in
-  let t = test (hello ^ world) (hello ^ world) in
-  print_endline t
+  let x = [| 1; 2; 3 + 4 |] in
+  let l = [] in
+  let b = 0 = 1 || (false && true) in
+  let l = 'x' :: l in
+  ()
 ;;
