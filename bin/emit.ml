@@ -73,6 +73,13 @@ let rec emit_expr expr =
        String.concat "\n" (first :: rest))
     ^ " in\n"
     ^ emit_expr next
+  | Lambda (params, body) ->
+    let params =
+      match params with
+      | [] -> [ "()" ]
+      | _ -> params
+    in
+    "(fun " ^ String.concat " " params ^ " -> " ^ emit_expr body ^ ")\n"
   | Call (expr, args) ->
     let args =
       match args with

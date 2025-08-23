@@ -1,7 +1,5 @@
 fun main() {
-    let x = {1,2, 3+4};
-    let l = [];
-    let b = 0 = 1 || false && true;
-    let l = 'x' :: l;
-    ()
+    let l = [1, 2, 3, 4];
+    let doubled = List.map(fun(x) { x * 5 }, l);
+    List.iter(IO.print_int, doubled)
 }

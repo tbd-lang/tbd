@@ -1,2 +1,3 @@
 #!/bin/bash
-sudo cp _build/default/bin/tbd.exe ~/.local/bin/tbd
+rm ~/.local/bin/tbd
+cp _build/default/bin/tbd.exe ~/.local/bin/tbd

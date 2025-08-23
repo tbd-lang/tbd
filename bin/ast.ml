@@ -13,6 +13,7 @@ type expr =
   | Let of ident * expr * expr
   | Fun of ident * ident list * expr * expr
   | FunRec of (ident * ident list * expr) list * expr
+  | Lambda of ident list * expr
   | Call of expr * expr list
   | Seq of expr * expr
   | Parens of expr
