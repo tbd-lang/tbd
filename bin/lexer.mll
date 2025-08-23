@@ -27,9 +27,16 @@ rule token = parse
   | "and" { AND }
   | "extern" { EXTERN }
   | "module" { MODULE }
+  | "alias" { ALIAS }
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }
+  | "Unit" { TUNIT }
+  | "Bool" { TBOOL }
+  | "Char" { TCHAR }
+  | "Int" { TINT }
+  | "Float" { TFLOAT }
+  | "String" { TSTRING }
   | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
   | '+' { PLUS }
   | '-' { MINUS }
@@ -57,8 +64,6 @@ rule token = parse
   | ']' { RBRACKET}
   | ';' { SEMI }
   | ',' { COMMA }
-
-  | "print_int" { PRINTINT }
   | eof { EOF }
   | _ as c { raise (Lex_error (Printf.sprintf "Unexpected char: %c" c)) }
 

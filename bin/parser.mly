@@ -10,7 +10,8 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC AND EXTERN MODULE IF ELSE
+%token LET FUN REC AND EXTERN MODULE ALIAS IF ELSE
+%token TUNIT TBOOL TCHAR TINT TFLOAT TSTRING
 %token PRINTINT
 %token EOF
 
@@ -42,6 +43,7 @@ decl:
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { DFunRec(($3, $5, $8) :: $10) }
   | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
   | MODULE IDENT LBRACE decls RBRACE { DModule($2, $4) }
+  | ALIAS IDENT EQ typ { DTypeAlias($2, $4) }
 ;
 
 expr:
@@ -85,6 +87,14 @@ expr:
   | expr BAND expr { And($1, $3) }
   | expr BOR expr { Or($1, $3) }
 ;
+
+typ:
+  | TUNIT { TUnit }
+  | TBOOL { TBool }
+  | TCHAR { TChar }
+  | TINT { TInt }
+  | TFLOAT { TFloat }
+  | TSTRING { TString }
 
 and_funs:
   | { [] }

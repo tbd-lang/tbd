@@ -114,6 +114,15 @@ let rec emit_expr expr =
   | And (a, b) -> emit_expr a ^ " && " ^ emit_expr b
   | Or (a, b) -> emit_expr a ^ " || " ^ emit_expr b
 
+and emit_typ typ =
+  match typ with
+  | TUnit -> "unit"
+  | TBool -> "bool"
+  | TChar -> "char"
+  | TInt -> "int"
+  | TFloat -> "float"
+  | TString -> "string"
+
 and emit_decl decl =
   match decl with
   | DFun (name, params, body) ->
@@ -158,6 +167,7 @@ and emit_decl decl =
     ^ " = struct\n"
     ^ String.concat "\n" (List.map emit_decl decls)
     ^ "\nend"
+  | DTypeAlias (name, typ) -> "type " ^ String.lowercase_ascii name ^ " = " ^ emit_typ typ
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)

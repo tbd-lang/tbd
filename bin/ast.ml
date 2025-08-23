@@ -37,10 +37,19 @@ type expr =
   | And of expr * expr
   | Or of expr * expr
 
+type typ =
+  | TUnit
+  | TBool
+  | TChar
+  | TInt
+  | TFloat
+  | TString
+
 type decl =
   | DFun of ident * ident list * expr
   | DFunRec of (ident * ident list * expr) list
   | DExtern of ident * ident list * string
   | DModule of ident * decl list
+  | DTypeAlias of ident * typ
 
 type program = decl list

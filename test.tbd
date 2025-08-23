@@ -1,5 +1,15 @@
-fun main() {
-    let l = [1, 2, 3, 4];
-    let doubled = List.map(fun(x) { x * 5 }, l);
-    List.iter(IO.print_int, doubled)
-}
+alias U = Unit
+alias B = Bool
+alias C = Char
+alias I = Int
+alias F = Float
+alias S = String
+
+type Nothing = Nothing
+type Either a b = This a | That b
+type Coordinate =
+    | Point (Int, Int)
+    | Vector (Float, Float, Float)
+ 
+
+fun main() {()}
