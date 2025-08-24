@@ -1,9 +1,1 @@
-type Status = Success Int | Failure Int
-type Either a b = Ok a | Error b
-type Something = This (Int, Float, String)
- 
-
-fun main() {
-    let _ = 1;
-    ()
-}
+fun main() { () }

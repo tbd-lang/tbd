@@ -27,9 +27,6 @@ rule token = parse
   | "and" { AND }
   | "extern" { EXTERN }
   | "module" { MODULE }
-  | "alias" { ALIAS }
-  | "type" { TYPE }
-  | "match" { MATCH }
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }
@@ -39,7 +36,10 @@ rule token = parse
   | "Int" { TINT }
   | "Float" { TFLOAT }
   | "String" { TSTRING }
-  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
+  | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
+  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { UIDENT id }
+  | "->" { ARROW }
+  | '_' { UNDERSCORE }
   | '+' { PLUS }
   | '-' { MINUS }
   | '*' { STAR }

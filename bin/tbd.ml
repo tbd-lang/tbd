@@ -1,54 +1,7 @@
 open Lexing
 
 let version = "0.1.0"
-
-let stdlib_source =
-  {|
-module IO {
-    extern print_int(x) = "print_endline (string_of_int x)"
-}
-
-module List {
-    extern length(l) = "List.length l"
-    extern hd(l) = "List.hd l"
-    extern tl(l) = "List.tl l"
-
-    fun reverse(l) {
-        fun rec inner(l, acc) {
-            if List.length(l) = 0 { acc }
-            else {
-                let hd = List.hd(l);
-                let tl = List.tl(l);
-                inner(tl, hd :: acc)
-            }
-        }
-        inner(l, [])
-    }
-
-    fun map(f, l) {
-        fun rec inner(l, acc) {
-            if List.length(l) = 0 { reverse(acc) }
-            else {
-                let hd = List.hd(l);
-                let tl = List.tl(l);
-                inner(tl, f(hd) :: acc)
-            }
-        }
-        inner(l, [])
-    }
-
-    fun rec iter(f, l) {
-        if List.length(l) = 0 { () }
-        else {
-            let hd = List.hd(l);
-            let tl = List.tl(l);
-            f(hd);
-            iter(f, tl)
-        }
-    }
-}
-|}
-;;
+let stdlib_source = ""
 
 let () =
   if Array.length Sys.argv < 2

@@ -56,13 +56,14 @@ type typ =
   | TString
   | TVar of ident
   | TTuple of typ list
+  | TConstr of ident * typ option
 
 type decl =
   | DFun of ident * ident list * expr
   | DFunRec of (ident * ident list * expr) list
   | DExtern of ident * ident list * string
   | DModule of ident * decl list
-  | DTypeAlias of ident * typ
+  | DTypeAlias of ident * ident list * typ
   | DTypeVariant of ident * ident list * (ident * typ) list
 
 type program = decl list
