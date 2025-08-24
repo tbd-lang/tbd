@@ -30,6 +30,9 @@ rule token = parse
   | "type" { TYPE }
   | "if" { IF }
   | "else" { ELSE }
+  | "match" { MATCH }
+  | "true" { TRUE }
+  | "false" { FALSE }
   | '\'' ['a'-'z']['a'-'z''A'-'Z''0'-'9' '_']* as id { TVAR (String.sub id 1 (String.length id - 1)) }
   | '"' { string "" lexbuf }
   | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }

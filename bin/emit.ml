@@ -1,9 +1,37 @@
 open Ast
 
-let rec emit_expr expr =
+let rec emit_pattern pat =
+  match pat with
+  | PBool true -> "true"
+  | PBool false -> "false"
+  | PChar c -> "'" ^ String.make 1 c ^ "'"
+  | PInt n -> string_of_int n
+  | PFloat f -> string_of_float f
+  | PString s -> "\"" ^ s ^ "\""
+  | PVar v -> v
+  | PWildcard -> "_"
+  | PTuple ps -> "(" ^ String.concat ", " (List.map emit_pattern ps) ^ ")"
+  | PConstr (name, args) ->
+    name
+    ^
+      (match args with
+      | [] -> ""
+      | _ ->
+        " ("
+        ^ String.concat
+            ","
+            (List.map
+               (fun p ->
+                  match p with
+                  | PTuple _ -> "(" ^ emit_pattern p ^ ")"
+                  | _ -> emit_pattern p)
+               args)
+        ^ ")")
+
+and emit_expr expr =
   match expr with
   | Unit -> "()"
-  | Bool b -> string_of_bool b ^ " "
+  | Bool b -> string_of_bool b
   | Char c -> "'" ^ String.make 1 c ^ "'"
   | Int n -> string_of_int n
   | Float n -> string_of_float n
@@ -92,10 +120,22 @@ let rec emit_expr expr =
     ^ " "
     ^ String.concat " " (List.map (fun arg -> "(" ^ emit_expr arg ^ ")") args)
     ^ ")"
+  | Constr (name, []) -> name
+  | Constr (name, args) ->
+    (match args with
+     | [ arg ] -> name ^ " " ^ emit_expr arg
+     | args -> name ^ " (" ^ String.concat ", " (List.map emit_expr args) ^ ")")
   | Seq (e1, e2) -> emit_expr e1 ^ "; " ^ emit_expr e2
   | Parens e -> "(" ^ emit_expr e ^ ")"
   | If (cond, e1, e2) ->
     "if " ^ emit_expr cond ^ " then " ^ emit_expr e1 ^ " else " ^ emit_expr e2
+  | Match (e, cases) ->
+    "match "
+    ^ emit_expr e
+    ^ " with\n"
+    ^ String.concat
+        "\n"
+        (List.map (fun (p, rhs) -> "| " ^ emit_pattern p ^ " -> " ^ emit_expr rhs) cases)
   | Add (a, b) -> emit_expr a ^ " + " ^ emit_expr b
   | Sub (a, b) -> emit_expr a ^ " - " ^ emit_expr b
   | Mul (a, b) -> emit_expr a ^ " * " ^ emit_expr b
@@ -117,13 +157,17 @@ let rec emit_expr expr =
 
 and emit_typ typ =
   match typ with
-  | T name -> " " ^ name ^ " "
   | TVar name -> " '" ^ name ^ " "
   | TTuple typs -> "(" ^ String.concat " * " (List.map emit_typ typs) ^ ")"
   | TConstr (name, typ) ->
     (match typ with
      | Some typ -> "| " ^ name ^ " of " ^ emit_typ typ
      | None -> "| " ^ name)
+  | TApp (name, args) ->
+    let lname = String.uncapitalize_ascii name in
+    (match args with
+     | [ t ] -> emit_typ t ^ " " ^ lname
+     | ts -> "(" ^ String.concat ", " (List.map emit_typ ts) ^ ") " ^ lname)
 
 and emit_decl decl =
   match decl with

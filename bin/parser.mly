@@ -2,7 +2,7 @@
 open Ast
 %}
 
-%token <bool> BOOL
+%token TRUE FALSE
 %token <char> CHAR
 %token <int> INT
 %token <float> FLOAT
@@ -12,12 +12,14 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC AND EXTERN MODULE TYPE IF ELSE
+%token LET FUN REC AND EXTERN MODULE TYPE IF ELSE MATCH
 %token <string> T
 %token <string> TVAR
 %token EOF
 
 %left SEMI
+%right LPAREN
+%left RPAREN
 %right BAND BOR
 %left EQ NEQ GT GTE LT LTE
 %left EQ_DOT
@@ -80,7 +82,8 @@ typs:
 expr:
   | LPAREN expr RPAREN { Parens($2) }
   | LPAREN RPAREN { Unit }
-  | BOOL { Bool($1) }
+  | TRUE { Bool(true) }
+  | FALSE { Bool(false) }
   | CHAR { Char($1) }
   | INT { Int($1) }
   | MINUS INT { Parens(Sub(Int(0), Int($2))) }
@@ -99,7 +102,10 @@ expr:
   | FUN LPAREN params RPAREN LBRACE expr RBRACE { Lambda($3, $6) }
   | expr SEMI expr { Seq($1, $3) }
   | expr LPAREN args RPAREN { Call($1, $3) }
+  | UIDENT { Constr($1, []) }
+  | UIDENT LPAREN args RPAREN { Constr($1, $3) }
   | IF expr LBRACE expr RBRACE ELSE LBRACE expr RBRACE { If($2, $4, $8) }
+  | MATCH expr LBRACE cases RBRACE { Match($2, $4) }
   | expr PLUS expr { Add($1, $3) }
   | expr MINUS expr { Sub($1, $3) }
   | expr STAR expr { Mul($1, $3) }
@@ -120,8 +126,44 @@ expr:
   | expr BOR expr { Or($1, $3) }
 ;
 
+cases:
+  | case { [$1] }
+  | case COMMA cases { $1 :: $3 }
+  | case COMMA { [$1] }
+;
+
+case:
+  | pat ARROW expr { ($1, $3) }
+  | pat ARROW LBRACE expr RBRACE { ($1, $4) }
+;
+
+pat:
+  | TRUE { PBool(true) }
+  | FALSE { PBool(false) }
+  | CHAR { PChar($1) }
+  | INT { PInt($1) }
+  | FLOAT { PFloat($1) }
+  | STRING { PString($1) }
+  | IDENT { PVar($1) }
+  | UNDERSCORE { PWildcard }
+  | LPAREN pats RPAREN { PTuple($2) }
+  | UIDENT { PConstr($1, []) }
+  | UIDENT LPAREN pat_args RPAREN { PConstr($1, $3) }
+;
+
+pats:
+  | pat { [$1] }
+  | pat COMMA pats { $1 :: $3 }
+;
+
+pat_args:
+  | pat                    { [$1] }
+  | pat COMMA pat_args     { $1 :: $3 }
+;
+
 typ:
-  | IDENT { T($1) }
+  | IDENT { TApp($1, []) }
+  | IDENT LPAREN typs RPAREN { TApp($1, $3) }
   | TVAR { TVar($1) }
   | LPAREN typs RPAREN { TTuple($2) }
 ;
