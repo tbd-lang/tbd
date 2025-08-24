@@ -12,7 +12,9 @@ open Ast
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC AND EXTERN MODULE IF ELSE
+%token LET FUN REC AND EXTERN MODULE TYPE IF ELSE
+%token TINT
+%token <string> TVAR
 %token EOF
 
 %left SEMI
@@ -43,6 +45,32 @@ decl:
   | FUN REC IDENT LPAREN params RPAREN LBRACE expr RBRACE and_funs { DFunRec(($3, $5, $8) :: $10) }
   | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
   | MODULE UIDENT LBRACE decls RBRACE { DModule($2, $4) }
+  | TYPE IDENT EQ variants { DTypVariant($2, [], $4) }
+  | TYPE IDENT LPAREN typvars RPAREN EQ variants { DTypVariant($2, $4, $7) }
+;
+
+typvars:
+  | { [] }
+  | TVAR { [$1] }
+  | TVAR COMMA typvars { $1 :: $3 }
+;
+
+variants:
+  | { [] }
+  | variant { [$1] }
+  | variant PIPE variants { $1 :: $3 }
+  | PIPE variant PIPE variants { $2 :: $4 }
+;
+
+variant:
+  | UIDENT { ($1, None)}
+  | UIDENT LPAREN typs RPAREN { ($1, Some(TTuple($3))) }
+;
+
+typs:
+  | { [] }
+  | typ { [$1] }
+  | typ COMMA typs { $1 :: $3 }
 ;
 
 expr:
@@ -86,6 +114,12 @@ expr:
   | expr LTE expr { Lte($1, $3) }
   | expr BAND expr { And($1, $3) }
   | expr BOR expr { Or($1, $3) }
+;
+
+typ:
+  | TINT { TInt }
+  | TVAR { TVar($1) }
+  | LPAREN typs RPAREN { TTuple($2) }
 ;
 
 and_funs:

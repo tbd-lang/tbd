@@ -38,10 +38,16 @@ type expr =
   | And of expr * expr
   | Or of expr * expr
 
+type typ =
+  | TInt
+  | TVar of ident
+  | TTuple of typ list
+
 type decl =
   | DFun of ident * ident list * expr
   | DFunRec of (ident * ident list * expr) list
   | DExtern of ident * ident list * string
   | DModule of ident * decl list
+  | DTypVariant of ident * ident list * (ident * typ option) list
 
 type program = decl list

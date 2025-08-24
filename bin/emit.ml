@@ -115,6 +115,12 @@ let rec emit_expr expr =
   | And (a, b) -> emit_expr a ^ " && " ^ emit_expr b
   | Or (a, b) -> emit_expr a ^ " || " ^ emit_expr b
 
+and emit_typ typ =
+  match typ with
+  | TInt -> " int "
+  | TVar name -> " '" ^ name ^ " "
+  | TTuple typs -> "(" ^ String.concat " * " (List.map emit_typ typs) ^ ")"
+
 and emit_decl decl =
   match decl with
   | DFun (name, params, body) ->
@@ -159,6 +165,21 @@ and emit_decl decl =
     ^ " = struct\n"
     ^ String.concat "\n" (List.map emit_decl decls)
     ^ "\nend"
+  | DTypVariant (name, typvars, variants) ->
+    "type "
+    ^ (match typvars with
+       | [] -> ""
+       | _ -> "(" ^ String.concat ", " (List.map (fun s -> "'" ^ s) typvars) ^ ") ")
+    ^ name
+    ^ " = "
+    ^ String.concat
+        ""
+        (List.map
+           (fun (name, typ) ->
+              match typ with
+              | Some typ -> "| " ^ name ^ " of " ^ emit_typ typ
+              | None -> "| " ^ name)
+           variants)
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)

@@ -27,8 +27,11 @@ rule token = parse
   | "and" { AND }
   | "extern" { EXTERN }
   | "module" { MODULE }
+  | "type" { TYPE }
   | "if" { IF }
   | "else" { ELSE }
+  | "int" { TINT }
+  | '\'' ['a'-'z']['a'-'z''A'-'Z''0'-'9' '_']* as id { TVAR (String.sub id 1 (String.length id - 1)) }
   | '"' { string "" lexbuf }
   | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
   | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { UIDENT id }
@@ -51,6 +54,7 @@ rule token = parse
   | '<' { LT }
   | "<=" { LTE }
   | "&&" { BAND }
+  | '|' { PIPE }
   | "||" { BOR }
   | '(' { LPAREN }
   | ')' { RPAREN }
@@ -60,7 +64,6 @@ rule token = parse
   | ']' { RBRACKET}
   | ';' { SEMI }
   | ',' { COMMA }
-  | '|' { PIPE }
   | eof { EOF }
   | _ as c { raise (Lex_error (Printf.sprintf "Unexpected char: %c" c)) }
 

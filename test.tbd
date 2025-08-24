@@ -1,1 +1,1 @@
-type nothing = Nothing
+type number('a) = One(int) | Two('a)
