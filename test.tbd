@@ -1,1 +1,5 @@
-type number('a) = One(int) | Two('a)
+type either('a, 'e) =
+    | Ok('a)
+    | Error('e)
+
+type result('a, 'e) = either('a, 'e)

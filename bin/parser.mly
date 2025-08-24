@@ -13,7 +13,7 @@ open Ast
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC AND EXTERN MODULE TYPE IF ELSE
-%token TINT
+%token <string> T
 %token <string> TVAR
 %token EOF
 
@@ -47,6 +47,10 @@ decl:
   | MODULE UIDENT LBRACE decls RBRACE { DModule($2, $4) }
   | TYPE IDENT EQ variants { DTypVariant($2, [], $4) }
   | TYPE IDENT LPAREN typvars RPAREN EQ variants { DTypVariant($2, $4, $7) }
+  | TYPE IDENT EQ IDENT { DTypAlias($2, [], $4, [])}
+  | TYPE IDENT EQ IDENT LPAREN typs RPAREN { DTypAlias($2, [], $4, $6)}
+  | TYPE IDENT LPAREN typvars RPAREN EQ IDENT { DTypAlias($2, $4, $7, [])}
+  | TYPE IDENT LPAREN typvars RPAREN EQ IDENT LPAREN typs RPAREN { DTypAlias($2, $4, $7, $9)}
 ;
 
 typvars:
@@ -63,8 +67,8 @@ variants:
 ;
 
 variant:
-  | UIDENT { ($1, None)}
-  | UIDENT LPAREN typs RPAREN { ($1, Some(TTuple($3))) }
+  | UIDENT { TConstr($1, None) }
+  | UIDENT LPAREN typs RPAREN { TConstr($1, Some(TTuple($3))) }
 ;
 
 typs:
@@ -117,7 +121,7 @@ expr:
 ;
 
 typ:
-  | TINT { TInt }
+  | IDENT { T($1) }
   | TVAR { TVar($1) }
   | LPAREN typs RPAREN { TTuple($2) }
 ;

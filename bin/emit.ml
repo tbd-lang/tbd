@@ -117,9 +117,13 @@ let rec emit_expr expr =
 
 and emit_typ typ =
   match typ with
-  | TInt -> " int "
+  | T name -> " " ^ name ^ " "
   | TVar name -> " '" ^ name ^ " "
   | TTuple typs -> "(" ^ String.concat " * " (List.map emit_typ typs) ^ ")"
+  | TConstr (name, typ) ->
+    (match typ with
+     | Some typ -> "| " ^ name ^ " of " ^ emit_typ typ
+     | None -> "| " ^ name)
 
 and emit_decl decl =
   match decl with
@@ -165,21 +169,25 @@ and emit_decl decl =
     ^ " = struct\n"
     ^ String.concat "\n" (List.map emit_decl decls)
     ^ "\nend"
-  | DTypVariant (name, typvars, variants) ->
+  | DTypVariant (name, typvars, typs) ->
     "type "
     ^ (match typvars with
        | [] -> ""
        | _ -> "(" ^ String.concat ", " (List.map (fun s -> "'" ^ s) typvars) ^ ") ")
     ^ name
     ^ " = "
-    ^ String.concat
-        ""
-        (List.map
-           (fun (name, typ) ->
-              match typ with
-              | Some typ -> "| " ^ name ^ " of " ^ emit_typ typ
-              | None -> "| " ^ name)
-           variants)
+    ^ String.concat "" (List.map emit_typ typs)
+  | DTypAlias (name, typvars, typ, typvars2) ->
+    "type "
+    ^ (match typvars with
+       | [] -> ""
+       | _ -> "(" ^ String.concat ", " (List.map (fun s -> "'" ^ s) typvars) ^ ") ")
+    ^ name
+    ^ " = "
+    ^ (match typvars2 with
+       | [] -> ""
+       | _ -> "(" ^ String.concat ", " (List.map emit_typ typvars2) ^ ") ")
+    ^ typ
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)
