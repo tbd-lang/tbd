@@ -2,18 +2,17 @@
 open Ast
 %}
 
+%token <bool> BOOL
 %token <char> CHAR
 %token <int> INT
 %token <float> FLOAT
 %token <string> STRING
-%token <string> IDENT 
-%token <string> UIDENT 
+%token <string> IDENT
+%token <string> UIDENT
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC AND EXTERN MODULE IF ELSE
-%token TUNIT TBOOL TCHAR TINT TFLOAT TSTRING
-%token PRINTINT
 %token EOF
 
 %left SEMI
@@ -49,6 +48,7 @@ decl:
 expr:
   | LPAREN expr RPAREN { Parens($2) }
   | LPAREN RPAREN { Unit }
+  | BOOL { Bool($1) }
   | CHAR { Char($1) }
   | INT { Int($1) }
   | MINUS INT { Parens(Sub(Int(0), Int($2))) }

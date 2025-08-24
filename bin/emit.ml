@@ -1,21 +1,9 @@
 open Ast
 
-let rec emit_pat pat =
-  match pat with
-  | PVar x -> x
-  | PWildcard -> "_"
-  | PInt n -> string_of_int n
-  | PChar c -> "'" ^ String.make 1 c ^ "'"
-  | PString s -> "\"" ^ s ^ "\""
-  | PTuple ps -> "(" ^ String.concat ", " (List.map emit_pat ps) ^ ")"
-  | PConstr (c, ps) ->
-    (match ps with
-     | [] -> c
-     | _ -> c ^ " " ^ String.concat " " (List.map emit_pat ps))
-
-and emit_expr expr =
+let rec emit_expr expr =
   match expr with
   | Unit -> "()"
+  | Bool b -> string_of_bool b ^ " "
   | Char c -> "'" ^ String.make 1 c ^ "'"
   | Int n -> string_of_int n
   | Float n -> string_of_float n
@@ -106,13 +94,6 @@ and emit_expr expr =
     ^ ")"
   | Seq (e1, e2) -> emit_expr e1 ^ "; " ^ emit_expr e2
   | Parens e -> "(" ^ emit_expr e ^ ")"
-  | Match (e, cases) ->
-    "match "
-    ^ emit_expr e
-    ^ " with "
-    ^ String.concat
-        " | "
-        (List.map (fun (p, e) -> emit_pat p ^ " -> " ^ emit_expr e) cases)
   | If (cond, e1, e2) ->
     "if " ^ emit_expr cond ^ " then " ^ emit_expr e1 ^ " else " ^ emit_expr e2
   | Add (a, b) -> emit_expr a ^ " + " ^ emit_expr b
@@ -133,33 +114,6 @@ and emit_expr expr =
   | Lte (a, b) -> emit_expr a ^ " <= " ^ emit_expr b
   | And (a, b) -> emit_expr a ^ " && " ^ emit_expr b
   | Or (a, b) -> emit_expr a ^ " || " ^ emit_expr b
-
-and emit_typ typ =
-  match typ with
-  | TUnit -> "unit"
-  | TBool -> "bool"
-  | TChar -> "char"
-  | TInt -> "int"
-  | TFloat -> "float"
-  | TString -> "string"
-  | TVar name ->
-    if
-      String.length name > 0
-      &&
-      let c = String.get name 0 in
-      Char.uppercase_ascii c = c
-    then String.lowercase_ascii name
-    else "'" ^ String.lowercase_ascii name
-  | TTuple ts -> "(" ^ String.concat " * " (List.map emit_typ ts) ^ ")"
-  | TConstr (name, None) -> String.uncapitalize_ascii name
-  | TConstr (name, Some t) ->
-    (match t with
-     | TTuple ts ->
-       "("
-       ^ String.concat ", " (List.map emit_typ ts)
-       ^ ") "
-       ^ String.uncapitalize_ascii name
-     | _ -> emit_typ t ^ " " ^ String.uncapitalize_ascii name)
 
 and emit_decl decl =
   match decl with
@@ -205,27 +159,6 @@ and emit_decl decl =
     ^ " = struct\n"
     ^ String.concat "\n" (List.map emit_decl decls)
     ^ "\nend"
-  | DTypeAlias (name, params, body) ->
-    let lname = String.uncapitalize_ascii name in
-    let params_str =
-      match params with
-      | [] -> ""
-      | [ p ] -> "'" ^ p ^ " "
-      | ps -> "(" ^ String.concat ", " (List.map (fun p -> "'" ^ p) ps) ^ ") "
-    in
-    "type " ^ params_str ^ lname ^ " = " ^ emit_typ body
-  | DTypeVariant (name, typvars, variants) ->
-    "type "
-    ^ (match List.length typvars with
-       | 0 -> ""
-       | _ -> "(" ^ String.concat ", " (List.map (fun t -> "'" ^ t) typvars) ^ ")")
-    ^ " "
-    ^ String.lowercase_ascii name
-    ^ " = "
-    ^ List.fold_right
-        (fun (name, typearg) acc -> "\n| " ^ name ^ " of " ^ emit_typ typearg ^ acc)
-        variants
-        ""
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)

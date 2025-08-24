@@ -30,12 +30,6 @@ rule token = parse
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }
-  | "Unit" { TUNIT }
-  | "Bool" { TBOOL }
-  | "Char" { TCHAR }
-  | "Int" { TINT }
-  | "Float" { TFLOAT }
-  | "String" { TSTRING }
   | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
   | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { UIDENT id }
   | "->" { ARROW }
