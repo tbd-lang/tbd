@@ -42,12 +42,17 @@ module List = struct
   ;;
 end
 
-type u = unit
-type b = bool
-type c = char
-type i = int
-type f = float
-type s = string
-type t = another
+type status =
+  | Success of int
+  | Failure of int
 
-let () = ()
+type ('a, 'b) either =
+  | Ok of 'a
+  | Error of 'b
+
+type something = This of int * float * string
+
+let () =
+  let _ = 1 in
+  ()
+;;

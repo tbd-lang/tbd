@@ -7,10 +7,10 @@ open Ast
 %token <float> FLOAT
 %token <string> STRING
 %token <string> IDENT 
-%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET
+%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
-%token LET FUN REC AND EXTERN MODULE ALIAS IF ELSE
+%token LET FUN REC AND EXTERN MODULE ALIAS TYPE IF ELSE
 %token TUNIT TBOOL TCHAR TINT TFLOAT TSTRING
 %token PRINTINT
 %token EOF
@@ -44,6 +44,18 @@ decl:
   | EXTERN IDENT LPAREN params RPAREN EQ STRING { DExtern($2, $4, $7) }
   | MODULE IDENT LBRACE decls RBRACE { DModule($2, $4) }
   | ALIAS IDENT EQ typ { DTypeAlias($2, $4) }
+  | TYPE IDENT typvars EQ variants { DTypeVariant($2, $3, $5) }
+;
+
+typvars:
+  | { [] }
+  | IDENT typvars { $1 :: $2 }
+;
+
+variants:
+  | { [] }
+  | IDENT typ variants { ($1, $2) :: $3 }
+  | IDENT typ PIPE variants { ($1, $2) :: $4 }
 ;
 
 expr:
@@ -95,7 +107,15 @@ typ:
   | TINT { TInt }
   | TFLOAT { TFloat }
   | TSTRING { TString }
+  | LPAREN typargs RPAREN { TTuple($2) }
   | IDENT { TVar($1) }
+;
+
+typargs:
+  | { [] }
+  | typ { [$1] }
+  | typ COMMA typargs { $1 :: $3 }
+;
 
 and_funs:
   | { [] }

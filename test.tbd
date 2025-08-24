@@ -1,19 +1,9 @@
-alias U = Unit
-alias B = Bool
-alias C = Char
-alias I = Int
-alias F = Float
-alias S = String
-
-
-
-alias T = Another
-
-# type Nothing = Nothing
-# type Either a b = This a | That b
-# type Coordinate =
-#     | Point (Int, Int)
-#     | Vector (Float, Float, Float)
+type Status = Success Int | Failure Int
+type Either a b = Ok a | Error b
+type Something = This (Int, Float, String)
  
 
-fun main() {()}
+fun main() {
+    let _ = 1;
+    ()
+}

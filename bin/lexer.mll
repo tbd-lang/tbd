@@ -28,6 +28,8 @@ rule token = parse
   | "extern" { EXTERN }
   | "module" { MODULE }
   | "alias" { ALIAS }
+  | "type" { TYPE }
+  | "match" { MATCH }
   | "if" { IF }
   | "else" { ELSE }
   | '"' { string "" lexbuf }
@@ -64,6 +66,7 @@ rule token = parse
   | ']' { RBRACKET}
   | ';' { SEMI }
   | ',' { COMMA }
+  | '|' { PIPE }
   | eof { EOF }
   | _ as c { raise (Lex_error (Printf.sprintf "Unexpected char: %c" c)) }
 

@@ -122,7 +122,19 @@ and emit_typ typ =
   | TInt -> "int"
   | TFloat -> "float"
   | TString -> "string"
-  | TVar name -> String.lowercase_ascii name
+  | TVar name ->
+    if
+      String.length name > 0
+      &&
+      let c = String.get name 0 in
+      Char.uppercase_ascii c = c
+    then String.lowercase_ascii name
+    else "'" ^ String.lowercase_ascii name
+  | TTuple typs ->
+    (match typs with
+     | [] -> ""
+     | [ t ] -> emit_typ t
+     | _ -> String.concat " * " (List.map (fun t -> "(" ^ emit_typ t ^ ")") typs))
 
 and emit_decl decl =
   match decl with
@@ -169,6 +181,18 @@ and emit_decl decl =
     ^ String.concat "\n" (List.map emit_decl decls)
     ^ "\nend"
   | DTypeAlias (name, typ) -> "type " ^ String.lowercase_ascii name ^ " = " ^ emit_typ typ
+  | DTypeVariant (name, typvars, variants) ->
+    "type "
+    ^ (match List.length typvars with
+       | 0 -> ""
+       | _ -> "(" ^ String.concat ", " (List.map (fun t -> "'" ^ t) typvars) ^ ")")
+    ^ " "
+    ^ String.lowercase_ascii name
+    ^ " = "
+    ^ List.fold_right
+        (fun (name, typearg) acc -> "\n| " ^ name ^ " of " ^ emit_typ typearg ^ acc)
+        variants
+        ""
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)
