@@ -50,6 +50,7 @@ rule token = parse
   | "/." { SLASH_DOT }
   | '^' { CARET }
   | "::" { CONS }
+  | ':' { COLON }
   | '=' { EQ }
   | "<>" { NEQ }
   | '>' { GT }

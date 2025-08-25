@@ -179,6 +179,10 @@ and emit_typ typ =
      | [] -> "" ^ lname
      | [ t ] -> emit_typ t ^ " " ^ lname
      | ts -> "(" ^ String.concat ", " (List.map emit_typ ts) ^ ") " ^ lname)
+  | TRecord fields ->
+    "{ "
+    ^ String.concat "; " (List.map (fun (n, t) -> n ^ " : " ^ emit_typ t) fields)
+    ^ " }"
 
 and emit_decl decl =
   match decl with
@@ -243,6 +247,18 @@ and emit_decl decl =
        | [] -> ""
        | _ -> "(" ^ String.concat ", " (List.map emit_typ typvars2) ^ ") ")
     ^ typ
+  | DTypeRecord (name, params, fields) ->
+    let params =
+      match params with
+      | [] -> ""
+      | ps -> "(" ^ String.concat ", " (List.map (fun v -> "'" ^ v) ps) ^ ") "
+    in
+    "type "
+    ^ params
+    ^ String.uncapitalize_ascii name
+    ^ " = {\n"
+    ^ String.concat ";\n" (List.map (fun (n, t) -> "  " ^ n ^ " : " ^ emit_typ t) fields)
+    ^ "\n}"
 ;;
 
 let emit_program program = String.concat "\n\n" (List.map emit_decl program)

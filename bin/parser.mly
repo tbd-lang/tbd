@@ -9,7 +9,7 @@ open Ast
 %token <string> STRING
 %token <string> IDENT
 %token <string> UIDENT
-%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE
+%token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE COLON
 %token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR DOT
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC AND EXTERN MODULE TYPE IF ELSE MATCH
@@ -53,6 +53,8 @@ decl:
   | TYPE IDENT EQ IDENT LPAREN typs RPAREN { DTypAlias($2, [], $4, $6)}
   | TYPE IDENT LPAREN typvars RPAREN EQ IDENT { DTypAlias($2, $4, $7, [])}
   | TYPE IDENT LPAREN typvars RPAREN EQ IDENT LPAREN typs RPAREN { DTypAlias($2, $4, $7, $9)}
+  | TYPE IDENT EQ record_fields { DTypeRecord($2, [], $4) }
+  | TYPE IDENT LPAREN typvars RPAREN EQ record_fields { DTypeRecord($2, $4, $7) }
 ;
 
 typvars:
@@ -172,6 +174,15 @@ typ:
   | IDENT LPAREN typs RPAREN { TApp($1, $3) }
   | TVAR { TVar($1) }
   | LPAREN typs RPAREN { TTuple($2) }
+;
+
+record_fields:
+  | LBRACE field_list RBRACE   { $2 }
+;
+
+field_list:
+  | IDENT COLON typ                   { [($1, $3)] }
+  | IDENT COLON typ COMMA field_list  { ($1, $3) :: $5 }
 ;
 
 and_funs:

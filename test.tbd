@@ -41,6 +41,11 @@
     }
  }
 
+type person = {
+    name: string,
+    age: int
+}
+
 fun main() {
     let l = ["I", "love", "you"];
     let s = List.Success(12);

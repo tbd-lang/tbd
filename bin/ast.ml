@@ -59,6 +59,7 @@ type typ =
   | TTuple of typ list
   | TConstr of ident * typ option
   | TApp of ident * typ list
+  | TRecord of (ident * typ) list
 
 type decl =
   | DFun of ident * ident list * expr
@@ -67,5 +68,6 @@ type decl =
   | DModule of ident * decl list
   | DTypVariant of ident * ident list * typ list
   | DTypAlias of ident * ident list * ident * typ list
+  | DTypeRecord of ident * ident list * (ident * typ) list
 
 type program = decl list
