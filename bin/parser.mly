@@ -135,6 +135,7 @@ cases:
 case:
   | pat ARROW expr { ($1, $3) }
   | pat ARROW LBRACE expr RBRACE { ($1, $4) }
+  
 ;
 
 pat:
@@ -150,6 +151,8 @@ pat:
   | UIDENT { PConstr($1, []) }
   | pat CONS pat { PCons($1, $3) }
   | LBRACKET RBRACKET { PEmptyList }
+  | LBRACKET pats RBRACKET { PList($2) }
+
 ;
 
 pats:

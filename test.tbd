@@ -28,8 +28,18 @@ fun map(f, l) {
     inner(l, [])
 }
 
+fun first_two(l) {
+    match l {
+        [] -> None,
+        [_] -> None,
+        [_, _] -> None,
+        one :: two :: _ -> Some(one, two)
+    }
+}
+
 fun main() {
     let l = ["I", "love", "you"];
+    let x = first_two(l);
     let l = map(fun(s) { s ^ "!" }, l);
     iter(fun(s) { print_endline(s) }, l)
 }

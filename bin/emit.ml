@@ -29,6 +29,14 @@ let rec emit_pattern pat =
         ^ ")")
   | PCons (l, r) -> emit_pattern l ^ " :: " ^ emit_pattern r
   | PEmptyList -> "[]"
+  | PList items ->
+    let rec collect items acc =
+      match items with
+      | [] -> acc ^ "]"
+      | [ x ] -> collect [] (acc ^ emit_pattern x)
+      | hd :: tl -> collect tl (acc ^ emit_pattern hd ^ "; ")
+    in
+    collect items "["
 
 and emit_expr expr =
   match expr with

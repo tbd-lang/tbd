@@ -12,6 +12,7 @@ type pat =
   | PConstr of ident * pat list
   | PCons of pat * pat
   | PEmptyList
+  | PList of pat list
 
 type expr =
   | Unit
