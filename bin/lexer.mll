@@ -35,8 +35,9 @@ rule token = parse
   | "false" { FALSE }
   | '\'' ['a'-'z']['a'-'z''A'-'Z''0'-'9' '_']* as id { TVAR (String.sub id 1 (String.length id - 1)) }
   | '"' { string "" lexbuf }
-  | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { IDENT id }
-  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' '.' ]* as id { UIDENT id }
+  | ['a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' ]* as id { IDENT id }
+  | ['A'-'Z' 'a'-'z' '_' ] ['A'-'Z' 'a'-'z' '0'-'9' '_' ]* as id { UIDENT id }
+  | '.' { DOT }
   | "->" { ARROW }
   | '_' { UNDERSCORE }
   | '+' { PLUS }

@@ -176,6 +176,7 @@ and emit_typ typ =
   | TApp (name, args) ->
     let lname = String.uncapitalize_ascii name in
     (match args with
+     | [] -> "" ^ lname
      | [ t ] -> emit_typ t ^ " " ^ lname
      | ts -> "(" ^ String.concat ", " (List.map emit_typ ts) ^ ") " ^ lname)
 

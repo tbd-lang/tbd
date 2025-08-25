@@ -10,7 +10,7 @@ open Ast
 %token <string> IDENT
 %token <string> UIDENT
 %token LPAREN RPAREN SEMI COMMA LBRACE RBRACE LBRACKET RBRACKET PIPE ARROW UNDERSCORE
-%token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR
+%token PLUS MINUS STAR SLASH CARET CONS EQ NEQ GT GTE LT LTE BAND BOR DOT
 %token PLUS_DOT MINUS_DOT STAR_DOT SLASH_DOT EQ_DOT
 %token LET FUN REC AND EXTERN MODULE TYPE IF ELSE MATCH
 %token <string> T
@@ -94,6 +94,7 @@ expr:
   | LBRACKET args RBRACKET { List($2) }
   | LBRACE args RBRACE { Array($2) }
   | IDENT { Var($1) }
+  | UIDENT DOT IDENT { Var($1 ^ "." ^ $3) }
   | LET IDENT EQ expr SEMI expr { Let($2, $4, $6) }
   | LET IDENT EQ LBRACE expr RBRACE SEMI expr { Let($2, $5, $8) }
   | LET LPAREN RPAREN EQ expr SEMI expr { Let("()", $5, $7) }
@@ -103,6 +104,7 @@ expr:
   | expr SEMI expr { Seq($1, $3) }
   | expr LPAREN args RPAREN { Call($1, $3) }
   | UIDENT { Constr($1, []) }
+  | UIDENT DOT UIDENT { Constr($1 ^ "." ^ $3, []) }
   | UIDENT LPAREN args RPAREN { Constr($1, $3) }
   | IF expr LBRACE expr RBRACE ELSE LBRACE expr RBRACE { If($2, $4, $8) }
   | MATCH expr LBRACE cases RBRACE { Match($2, $4) }
