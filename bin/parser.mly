@@ -148,7 +148,8 @@ pat:
   | UNDERSCORE { PWildcard }
   | LPAREN pats RPAREN { PTuple($2) }
   | UIDENT { PConstr($1, []) }
-  | UIDENT LPAREN pat_args RPAREN { PConstr($1, $3) }
+  | pat CONS pat { PCons($1, $3) }
+  | LBRACKET RBRACKET { PEmptyList }
 ;
 
 pats:

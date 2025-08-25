@@ -10,6 +10,8 @@ type pat =
   | PWildcard
   | PTuple of pat list
   | PConstr of ident * pat list
+  | PCons of pat * pat
+  | PEmptyList
 
 type expr =
   | Unit

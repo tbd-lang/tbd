@@ -1,18 +1,35 @@
-type list('a) =
-    | Empty
-    | Node('a, list('a))
-
 fun rec iter(f, l) {
     match l {
-        Empty -> (),
-        Node(hd, tl) -> {
+        [] -> (),
+        hd :: tl -> {
             f(hd);
             iter(f, tl)
         }
     }
 }
 
+fun reverse(l) {
+    fun rec inner(l, acc) {
+        match l {
+            [] -> acc,
+            hd :: tl -> inner(tl, hd :: acc)
+        }
+    }
+    inner(l, [])
+}
+
+fun map(f, l) {
+    fun rec inner(l, acc) {
+        match l {
+            [] -> reverse(acc),
+            h :: t -> inner(t, f(h) :: acc)
+        }
+    }
+    inner(l, [])
+}
+
 fun main() {
-    let l = Node("I", Node("love", Node("you!", Empty)));
+    let l = ["I", "love", "you"];
+    let l = map(fun(s) { s ^ "!" }, l);
     iter(fun(s) { print_endline(s) }, l)
 }

@@ -27,6 +27,8 @@ let rec emit_pattern pat =
                   | _ -> emit_pattern p)
                args)
         ^ ")")
+  | PCons (l, r) -> emit_pattern l ^ " :: " ^ emit_pattern r
+  | PEmptyList -> "[]"
 
 and emit_expr expr =
   match expr with
